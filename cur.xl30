@@ -34,7 +34,7 @@ epyt
 
 bar = fc x
 | 10 { Foo.Result (x + 10) }
-| _ { Foo.Error (x)
+| _ { Foo.Error x } 
 fc
 
 # like carML, ADT constructors are namespaced
