@@ -27,9 +27,9 @@ foo! = fc x y
 cf
 
 # algebraic data types are nice, let's do those:
-type Foo
-| Result 'a
-| Error 'b
+type Foo[A B]
+| Result A
+| Error B
 epyt
 
 bar = fc x
