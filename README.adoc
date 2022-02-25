@@ -1,0 +1,4 @@
+== Overview
+
+A tiny experimental language that combines https://github.com/mth/yeti[Yeti] and https://github.com/lojikil/carml[CarML] more
+directly.
