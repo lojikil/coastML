@@ -26,6 +26,15 @@ foo! = fc x y
 | _ { print_endline "oh no, x is none of the above" }
 cf
 
+# no need to name them in fc however...
+# really should only work with 1 parameter...
+foo$ = fc
+| 10 { print_endline "10" }
+| 11 { print_endline "11" }
+| (x < 10) { print_endline "x is less than 10..." }
+| _ { print_endline "x is greater than 11..." }
+cf
+
 # algebraic data types are nice, let's do those:
 type Foo[A B]
 | Result A
