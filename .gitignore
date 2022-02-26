@@ -1,0 +1,8 @@
+*.swp
+*.swo
+*.pyc
+__pycache__/*
+*.o
+*.cm*
+*.bak
+*.db
