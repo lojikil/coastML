@@ -1,13 +1,13 @@
 == Overview
 
-A tiny experimental language that combines https://github.com/mth/yeti[Yeti] and https://github.com/lojikil/carml[CarML] more
+A tiny experimental language that combines https://github.com/mth/yeti[Yeti] and https://github.com/lojikil/carml[carML] more
 directly.
 
 === BLUF
 
 . Tiny: just a handful of keywords and a simple grammar
 . Safe: generate code that is human readable, reasonable to edit, and safe
-. Historical: take my lessons learnt from writing CarML, and apply them here, to a smaller language
+. Historical: take my lessons learnt from writing carML, and apply them here, to a smaller language
 . With input from writing a fair amount of ReasonML of late
 
 == Rationale
@@ -19,13 +19,13 @@ to use a `+match+` like form, without upgrading to Python 3.10. My thought proce
 . Can I use http://coconut-lang.org/[Coconut?] no, I didn't like the resulting Python code
 . Can I generate some of these cases? yes, but it would be nicer to just write something
 
-I've been lamenting that I don't really like working on CarML: the codebase is unwieldy because of the change in direction I had; so
+I've been lamenting that I don't really like working on carML: the codebase is unwieldy because of the change in direction I had; so
 I started looking at Yeti again, and thought that I could write something like Yeti that generated a few different languages, like
 Python3, and not have to write those again.
 
 == Name
 
-Currently, this is just eXperimental Language No. 30 (XL/30); I've written a few languages since CarML, but none were meant to be
+Currently, this is just eXperimental Language No. 30 (XL/30); I've written a few languages since carML, but none were meant to be
 a linguistic experiment. However, based on internal polling (of myself, my older son, and my partner) I believe I'll rename this to
 coastML soon enough, with logo and nomenclature (come to the coast, stay a while).
 
