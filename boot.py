@@ -625,3 +625,12 @@ class Lex:
                 return TokenIdent(lexeme, self.line, self.offset)
             else:
                 return TokenError("Malformed ident/tag/keyword", self.line, self.offset)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        l = self.next()
+        if type(l) == TokenError or type(l) == TokenEOF:
+            raise StopIteration
+        return l
