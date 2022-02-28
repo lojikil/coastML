@@ -13,10 +13,18 @@ import re
 import string
 
 class Token:
-    pass
+    def __repr__(self):
+        return "Token()"
+
+    def __str__(self):
+        return "Token()"
 
 class TokenEOF(Token):
-    pass
+    def __repr__(self):
+        return "TokenEOF()"
+
+    def __str__(self):
+        return "TokenEOF()"
 
 class TokenComment(Token):
     def __init__(self, c, l, o):
@@ -397,13 +405,26 @@ class TokenTag(Token):
     def __str__(self):
         return self.lexeme
 
+# TokenOperator 3
+
+class TokenOperator(Token):
+    def __init__(self, c, l, o):
+        self.lexeme = c
+        self.line = l
+        self.offset = o
+
+    def __repr__(self):
+        return "TokenOperator({0})".format(self.lexeme)
+
+    def __str__(self):
+        return self.lexeme
 
 class Lex:
     def __init__(self, src=None, offset=0, line=0):
         self.src = src
         self.offset = offset
         self.line = line
-        self.rest_ident = re.compile("[a-zA-Z0-9_+=!@$%^&*|?:\.-]")
+        self.rest_ident = re.compile("[a-zA-Z0-9_+=!@$%^&*|?:\.<>-]")
         # we have two options here:
         #
         # * make tag/ident strict
@@ -413,10 +434,11 @@ class Lex:
         # note; Python's `re.match` will actually match `tag`
         # and `ns_mod` for the same, albeit a substring of the
         # actual string for the former
-        self.tag = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?-]*")
-        self.ident = re.compile("[a-z][a-zA-Z0-9_+=!@$%^&*|?-]*")
-        self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?-])+")
-        self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?-]*(::[a-zA-Z0-9_+=!@$%^&*|?-])+")
+        self.tag = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*")
+        self.ident = re.compile("[a-z][a-zA-Z0-9_+=!@$%^&*|?<>-]*")
+        self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-])+")
+        self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>-])+")
+        self.operators = re.compile("[+=!@$%^&*|?<>-]+")
         self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod)$")
         self.types = re.compile("^(int|float|number|string|list|array|deque)$")
         self.bools = re.compile("^(true|false)$")
@@ -430,6 +452,9 @@ class Lex:
                 if self.src[o] == '\n':
                     self.line += 1
                 o += 1
+
+        if o >= len(self.src):
+            return TokenEOF()
 
         # ok, now we've reached here, let's start lexing out some lexemes
         if self.src[o] == '#':
@@ -518,6 +543,7 @@ class Lex:
                 if self.src[no] == '\n':
                     self.line += 1
                 no += 1
+            no += 1
             self.offset = no
             return TokenString(self.src[o:no], self.line, self.offset)
         elif self.src[o] == '0':
@@ -557,11 +583,28 @@ class Lex:
                 return TokenFloat(self.src[o:no], self.line, self.offset)
             else:
                 return TokenError("Incorrectly formatted atom/numeral", self.line, self.offset)
-        elif self.rest_ident.match(src[o]):
+        elif self.src[o] in '123456789':
             no = o + 1
-            while no < len(self.src) and self.rest_ident.match(src[no]):
+            if self.src[no] in '0123456789':
+                no += 1
+                while no < len(self.src) and self.src[no] in '0123456789':
+                    no += 1
+                self.offset = no
+                return TokenInt(self.src[o:no], self.line, self.offset)
+            elif self.src[no] == '.':
+                no += 1
+                while no < len(self.src) and self.src[no] in '0123456789':
+                    no += 1
+                self.offset = no
+                return TokenFloat(self.src[o:no], self.line, self.offset)
+            else:
+                return TokenError("Incorrectly formatted numeral", self.line, self.offset)
+        elif self.rest_ident.match(self.src[o]):
+            no = o + 1
+            while no < len(self.src) and self.rest_ident.match(self.src[no]):
                 no += 1
             lexeme = self.src[o:no]
+            self.offset = no
             # Now we're off to the races; we need to go through a few
             # different RegExs to see which ones matches...
             if self.keywords.match(lexeme):
@@ -578,5 +621,7 @@ class Lex:
                 return TokenTag(lexeme, self.line, self.offset)
             elif self.ident.match(lexeme):
                 return TokenIdent(lexeme, self.line, self.offset)
+            elif self.operators.match(lexeme):
+                return TokenOperator(lexeme, self.line, self.offset)
             else:
                 return TokenError("Malformed ident/tag/keyword", self.line, self.offset)
