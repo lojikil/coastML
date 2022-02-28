@@ -7,11 +7,11 @@ foo = fn x y { # (1)
         | 10 { print_endline "ok, x is 10" } # (3)
         | 11 { print_endline "ok, x is 11" }
         | (x >= y) { print_endline "ok, x is >= y" } # (4)
-        | else { print_endline "oh no, x is none of the above" } # (5)
+        | _ { print_endline "oh no, x is none of the above" } # (5)
     esac # (6)
 }
-foo 10
-foo 20
+foo 10;
+foo 20;
 """
 tokens = []
 from boot import Lex

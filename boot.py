@@ -435,10 +435,10 @@ class Lex:
         # and `ns_mod` for the same, albeit a substring of the
         # actual string for the former
         self.tag = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*")
-        self.ident = re.compile("[a-z][a-zA-Z0-9_+=!@$%^&*|?<>-]*")
+        self.ident = re.compile("[a-z_!@$%^&*<>][a-zA-Z0-9_+=!@$%^&*|?<>-]*")
         self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-])+")
         self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>-])+")
-        self.operators = re.compile("[+=!@$%^&*|?<>-]+")
+        self.operators = re.compile("^([+=!@$%^&*|?<>-])+$")
         self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod)$")
         self.types = re.compile("^(int|float|number|string|list|array|deque)$")
         self.bools = re.compile("^(true|false)$")
@@ -488,28 +488,28 @@ class Lex:
                 self.offset = no
                 return TokenIdent(self.src[o:no], self.line, self.offset)
         elif self.src[o] == '(':
-            self.offset += 1
+            self.offset = o + 1
             return TokenCallStart(self.line, self.offset)
         elif self.src[o] == ')':
-            self.offset += 1
+            self.offset = o + 1
             return TokenCallEnd(self.line, self.offset)
         elif self.src[o] == '[':
-            self.offset += 1
+            self.offset = o + 1
             return TokenArrayStart(self.line, self.offset)
         elif self.src[o] == ']':
-            self.offset += 1
+            self.offset = o + 1
             return TokenArrayEnd(self.line, self.offset)
         elif self.src[o] == '{':
-            self.offset += 1
+            self.offset = o + 1
             return TokenBlockStart(self.line, self.offset)
         elif self.src[o] == '}':
-            self.offset += 1
+            self.offset = o + 1
             return TokenBlockEnd(self.line, self.offset)
         elif self.src[o] == ',':
-            self.offset += 1
+            self.offset = o + 1
             return TokenComma(self.line, self.offset)
         elif self.src[o] == ';':
-            self.offset += 1
+            self.offset = o + 1
             return TokenSemiColon(self.line, self.offset)
         elif self.src[0] == ':':
             no = o + 1
@@ -617,11 +617,11 @@ class Lex:
                 return TokenNSADT(lexeme, self.line, self.offset)
             elif self.ns_mod.match(lexeme):
                 return TokenNSMod(lexeme, self.line, self.offset)
+            elif self.operators.match(lexeme):
+                return TokenOperator(lexeme, self.line, self.offset)
             elif self.tag.match(lexeme):
                 return TokenTag(lexeme, self.line, self.offset)
             elif self.ident.match(lexeme):
                 return TokenIdent(lexeme, self.line, self.offset)
-            elif self.operators.match(lexeme):
-                return TokenOperator(lexeme, self.line, self.offset)
             else:
                 return TokenError("Malformed ident/tag/keyword", self.line, self.offset)
