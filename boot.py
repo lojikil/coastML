@@ -634,3 +634,52 @@ class Lex:
         if type(l) == TokenError or type(l) == TokenEOF:
             raise StopIteration
         return l
+
+class CoastAST:
+    def __init__(self):
+        pass
+    def __repr__(self):
+        return "CoastAST()"
+
+class CoastAssignAST(CoastAST):
+    def __init__(self, n, v):
+        self.name = n
+        self.value = v
+
+    def __str__(self):
+        "{0} = {1}".format(n, str(v))
+
+class CoastFNAST(CoastAST):
+    def __init__(self, p, b):
+        self.parameters = p
+        self.body = b
+
+    def __str__(self):
+        params = " ".join(self.parameters)
+        return "fn {0} {1}".format(params, self.body)
+
+class CoastFCAST(CoastAST):
+    def __init__(self, p, c):
+        self.parameters = p
+        self.conditions = c
+
+    def __str__(self):
+        params = " ".join(self.parameters)
+        conds = "\n| ".join([" ".join(x[0], "{ " + x[1] + " }") for x in self.conditions])
+        return "fc {0} {1}\ncf".format(params, conds)
+
+class CoastCaseAST(CoastAST):
+    def __init__(self, ic, c):
+        self.initial_condition = ic
+        self.conditions = c
+
+    def __str__(self):
+        conds = "\n| ".join([" ".join(x[0], "{ " + x[1] + " }") for x in self.conditions])
+        return "case {0} {1}\nesac".format(self.initial_condition, conds)
+
+class CoastalParser:
+    def __init__(self, src):
+        self.src = src
+
+    def parse(self):
+        return AST()
