@@ -14,7 +14,7 @@ foo 10;
 foo 20;
 """
 tokens = []
-from boot import Lex
+from carpet import Lex
 ll = Lex(src)
 while True:
     l = ll.next()

@@ -644,6 +644,7 @@ class Lex:
 class CoastAST:
     def __init__(self):
         pass
+
     def __repr__(self):
         return "CoastAST()"
 
@@ -663,7 +664,7 @@ class CoastAssignAST(CoastAST):
         self.value = v
 
     def to_coast(self, depth=0):
-        "{0} = {1}".format(n, str(v))
+        return "{0} = {1}".format(self.name, str(self.value))
 
     def __str__(self):
         return self.to_coast()
@@ -807,7 +808,7 @@ class CoastIdentAST(CoastAST):
         # same note as the above: no real
         # need to do anything here, just
         # return the literal we have
-        return self.identval
+        return self.identvalue
 
     def __str__(self):
         return self.to_coast()
