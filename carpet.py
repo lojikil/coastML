@@ -8,6 +8,12 @@
 #@(#)
 #@(#) Currently written as a single file, just to keep things
 #@(#) relatively self-contained
+#@(#) Thinking about it further, we can just clean this up and
+#@(#) use it for the Python system, or at least the coastML->Python
+#@(#) system. We can rewrite a better one in coastML later.
+#@(#) Additionally, since we want to have a Python compiler, there's
+#@(#) no real need to have an AST walker: just general Python3 from
+#@(#) the REPL and evaluate it in Python itself...
 
 import re
 import string
@@ -644,6 +650,10 @@ class CoastAST:
     def to_coast(self, depth=0):
         return "Coast {0}".format(depth)
 
+    def indent(self, depth):
+        for i in range(1, depth):
+            print("    ")
+
     def __str__(self):
         return self.to_coast()
 
@@ -773,6 +783,16 @@ class CoastLiteralAST(CoastAST):
 
     def to_coast(self, depth=0):
         # switch on the type...
+        # wait, we don't actually need
+        # to switch on the type here,
+        # but we do need to _store_ the
+        # type for other compilers. For
+        # example, the Golang system
+        # needs to know if we're talking
+        # about a binary integer, since
+        # Golang doesn't have native binary
+        # integers...
+        return self.litvalue
 
     def __str__(self):
         return self.to_coast()
@@ -784,6 +804,10 @@ class CoastIdentAST(CoastAST):
 
     def to_coast(self, depth=0):
         # switch on the type...
+        # same note as the above: no real
+        # need to do anything here, just
+        # return the literal we have
+        return self.identval
 
     def __str__(self):
         return self.to_coast()
