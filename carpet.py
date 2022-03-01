@@ -17,6 +17,7 @@
 
 import re
 import string
+import functools
 
 class Token:
     def __repr__(self):
@@ -676,9 +677,9 @@ class CoastFNAST(CoastAST):
         self.types = types
 
     def to_coast(self, depth=0):
-        params = " ".join(self.parameters)
+        params = " ".join([x.to_coast() for x in self.parameters])
 
-        if types is not None:
+        if self.types is not None:
             params = "[{0}] {1}".format(" ".join(self.types), params)
 
         return "fn {0} {1}".format(params, self.body)
@@ -741,7 +742,7 @@ class CoastOpCallAST(CoastAST):
     def to_coast(self, depth=0):
         op = str(self.op)
         data = [str(x) for x in self.data]
-        v = functools.reduce(lambda x,y: x + op + y, data)
+        v = functools.reduce(lambda x,y: x + " " + op + " " + y, data)
         if depth > 0:
             return "({0})".format(v)
         return v
