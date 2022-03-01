@@ -641,41 +641,152 @@ class CoastAST:
     def __repr__(self):
         return "CoastAST()"
 
+    def to_coast(self, depth=0):
+        return "Coast {0}".format(depth)
+
+    def __str__(self):
+        return self.to_coast()
+
 class CoastAssignAST(CoastAST):
     def __init__(self, n, v):
         self.name = n
         self.value = v
 
-    def __str__(self):
+    def to_coast(self, depth=0):
         "{0} = {1}".format(n, str(v))
 
+    def __str__(self):
+        return self.to_coast()
+
 class CoastFNAST(CoastAST):
-    def __init__(self, p, b):
+    def __init__(self, p, b, types=None):
         self.parameters = p
         self.body = b
+        self.types = types
 
-    def __str__(self):
+    def to_coast(self, depth=0):
         params = " ".join(self.parameters)
+
+        if types is not None:
+            params = "[{0}] {1}".format(" ".join(self.types), params)
+
         return "fn {0} {1}".format(params, self.body)
 
-class CoastFCAST(CoastAST):
-    def __init__(self, p, c):
+    def __str__(self):
+        return self.to_coast()
+
+class CoastGNAST(CoastAST):
+    def __init__(self, p, b, types=None):
         self.parameters = p
-        self.conditions = c
+        self.body = b
+        self.types = types
+
+    def to_coast(self, depth=0):
+        params = " ".join(self.parameters)
+
+        if types is not None:
+            params = "[{0}] {1}".format(" ".join(self.types), params)
+
+        return "gn {0} {1}".format(params, self.body)
 
     def __str__(self):
+        return self.to_coast()
+
+class CoastFCAST(CoastAST):
+    def __init__(self, p, c, types=None):
+        self.parameters = p
+        self.conditions = c
+        self.types = types
+
+    def to_coast(self, depth=0):
         params = " ".join(self.parameters)
         conds = "\n| ".join([" ".join(x[0], "{ " + x[1] + " }") for x in self.conditions])
+
+        if types is not None:
+            params = "[{0}] {1}".format(" ".join(self.types), params)
+
         return "fc {0} {1}\ncf".format(params, conds)
+
+    def __str__(self):
+        return self.to_coast()
 
 class CoastCaseAST(CoastAST):
     def __init__(self, ic, c):
         self.initial_condition = ic
         self.conditions = c
 
-    def __str__(self):
+    def to_coast(self, depth=0):
         conds = "\n| ".join([" ".join(x[0], "{ " + x[1] + " }") for x in self.conditions])
         return "case {0} {1}\nesac".format(self.initial_condition, conds)
+
+    def __str__(self):
+        return self.to_coast()
+
+class CoastOpCallAST(CoastAST):
+    def __init__(self, op, data):
+        self.op = op
+        self.data = data
+
+    def to_coast(self, depth=0):
+        op = str(self.op)
+        data = [str(x) for x in self.data]
+        v = functools.reduce(lambda x,y: x + op + y, data)
+        if depth > 0:
+            return "({0})".format(v)
+        return v
+
+    def __str__(self):
+        return self.to_coast()
+
+class CoastFNCallAST(CoastAST):
+    def __init__(self, fn, data):
+        self.fn = fn
+        self.data = data
+
+    def to_coast(self, depth=0):
+        fn = str(self.fn)
+        data = " ".join([x.to_coast(depth=depth + 1) for x in self.data])
+        template = "{0} {1}"
+        if depth > 0:
+            template = "({0} {1})"
+        return template.format(fn, data)
+
+    def __str__(self):
+        return self.to_coast()
+
+class CoastBlockAST(CoastAST):
+    def __init__(self, progn):
+        self.progn = progn
+
+    def to_coast(self, depth=0):
+        progn = "\n".join([x.to_coast() for x in self.progn])
+        # we can maybe use depth for indent here?
+        return "{{\n{0}\n}}".format(progn)
+
+    def __str__(self):
+        return self.to_coast()
+
+class CoastLiteralAST(CoastAST):
+    def __init__(self, littype, litval):
+        self.littype = littype
+        self.litvalue = litval
+
+    def to_coast(self, depth=0):
+        # switch on the type...
+
+    def __str__(self):
+        return self.to_coast()
+
+class CoastIdentAST(CoastAST):
+    def __init__(self, identtype, identval):
+        self.identtype = identtype
+        self.identvalue = identval
+
+    def to_coast(self, depth=0):
+        # switch on the type...
+
+    def __str__(self):
+        return self.to_coast()
 
 class CoastalParser:
     def __init__(self, src):
@@ -683,3 +794,8 @@ class CoastalParser:
 
     def parse(self):
         return AST()
+
+# The actual coastML -> Python compiler
+# named after the "coastal carpet python"
+class CarpetPython:
+    pass
