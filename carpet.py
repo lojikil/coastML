@@ -653,8 +653,12 @@ class CoastAST:
         return "Coast {0}".format(depth)
 
     def indent(self, depth):
-        for i in range(1, depth):
-            print("    ")
+        print("in indent?", depth)
+        res = ""
+        for i in range(0, depth):
+            res += "    "
+        print(len(res))
+        return res
 
     def __str__(self):
         return self.to_coast()
@@ -677,7 +681,7 @@ class CoastFNAST(CoastAST):
         self.types = types
 
     def to_coast(self, depth=0):
-        params = " ".join([x.to_coast() for x in self.parameters])
+        params = " ".join([x.to_coast(depth=depth + 1) for x in self.parameters])
 
         if self.types is not None:
             params = "[{0}] {1}".format(" ".join(self.types), params)
@@ -771,7 +775,14 @@ class CoastBlockAST(CoastAST):
         self.progn = progn
 
     def to_coast(self, depth=0):
-        progn = "\n".join([x.to_coast() for x in self.progn])
+        if depth == 0:
+            joiner = self.indent(1) + "\n"
+            print("jointer:", len(joiner))
+        else:
+            joiner = self.indent(depth=depth + 1) +"\n"
+        progn = joiner.join([x.to_coast() for x in self.progn])
+        progn = self.indent(1) + progn
+        print(progn)
         # we can maybe use depth for indent here?
         return "{{\n{0}\n}}".format(progn)
 
@@ -819,7 +830,21 @@ class CoastalParser:
         self.src = src
 
     def parse(self):
-        return AST()
+        # There are a few different things we need to parse at the
+        # top level:
+        #
+        # . Assignments
+        # . Function/Operator calls
+        # . Modules (we can elide some of this for now...)
+        # . fn/fc/gn/case
+        #
+        # I've thought about actually turning the whole file into
+        # a Stream/List and then being able to backtrack on position,
+        # rather than attempting to lex one by one. We can (and will)
+        # still use RDP (or TDOP or Shunting Yard), but it will be
+        # fairly directed by the fact that we already have a stream
+        # of lexemes
+        return CoastAST()
 
 # The actual coastML -> Python compiler
 # named after the "coastal carpet python"
