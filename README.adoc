@@ -27,8 +27,8 @@ Python3, and not have to write those again.
 
 == Name
 
-Currently, this is just eXperimental Language No. 30 (XL/30); I've written a few languages since carML, but none were meant to be
-a linguistic experiment. However, based on internal polling (of myself, my older son, and my partner) I believe I'll rename this to
+Previously, this was just eXperimental Language No. 30 (XL/30); I've written a few languages since carML, but none were meant to be
+a linguistic experiment. However, based on internal polling (of myself, my older son, and my partner) I've  renamed this to
 coastML soon enough, with logo and nomenclature (come to the coast, stay a while).
 
 == Example
@@ -59,3 +59,19 @@ foo 20;
 <6> closing a form is just the name of the form backwards, Algol-style
 
 One other item to note is that https://github.com/lojikil/carML/blob/master/docs/opprec.md[I finally decided to actually handle operators]
+
+== Forms
+
+There are only a handful of forms in coastML:
+
+* `fn`: a lambda
+* `gn`: a generic lambda (for multi-methods)
+* `fc`: a case-lambda
+* `type`: for introducing records & ADTs
+* `case`: a combination of `cond` and `case` or `match`
+* `mod`: modules (still on the fence about making first class modules & functors)
+* assignments, operators, and function calls
+** one note about operators: like Project Verona and carML, coastML has no operator precedence, but does support inline operators
+** This means that you cannot have two operators in a form that are of different precedence without parentheses
+** for example: `1 + 2 + 3` is fine, but `1 + 2 * 3` requires parentheses: `1 + (2 * 3)`
+** function calls work similarly: `print_endline (->string foo)`
