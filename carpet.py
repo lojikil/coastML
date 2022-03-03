@@ -716,7 +716,7 @@ class CoastFCAST(CoastAST):
 
     def to_coast(self, depth=0):
         params = " ".join(self.parameters)
-        conds = "\n| ".join([" ".join(x[0], "{ " + x[1] + " }") for x in self.conditions])
+        conds = "\n| " + "\n| ".join([" ".join(x[0], "{ " + x[1] + " }") for x in self.conditions])
 
         if types is not None:
             params = "[{0}] {1}".format(" ".join(self.types), params)
@@ -732,7 +732,7 @@ class CoastCaseAST(CoastAST):
         self.conditions = c
 
     def to_coast(self, depth=0):
-        conds = "\n| ".join([" ".join(x[0], "{ " + x[1] + " }") for x in self.conditions])
+        conds = "\n| " + "\n| ".join([" ".join([x[0].to_coast(), x[1].to_coast()]) for x in self.conditions])
         return "case {0} {1}\nesac".format(self.initial_condition, conds)
 
     def __str__(self):
