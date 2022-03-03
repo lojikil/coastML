@@ -825,11 +825,19 @@ class CoastIdentAST(CoastAST):
     def __str__(self):
         return self.to_coast()
 
+class CoastalParseError(Exception):
+    def __init__(self, error_message, line):
+        self.error_message = error_message
+        self.line = line
+
 class CoastalParser:
     def __init__(self, src):
         self.src = src
+        self.current_offset = 0
+        self.lexemes = []
+        self.asts = []
 
-    def parse(self):
+    def parse(self, reparse=False, ignore_comments=False):
         # There are a few different things we need to parse at the
         # top level:
         #
@@ -844,6 +852,49 @@ class CoastalParser:
         # still use RDP (or TDOP or Shunting Yard), but it will be
         # fairly directed by the fact that we already have a stream
         # of lexemes
+
+        if reparse:
+            self.asts = []
+            self.lexemes = []
+            self.current_offset = 0
+
+        if len(self.lexemes) > 0:
+            return self.asts
+
+        lexer = Lex(self.src)
+        lexeme = lexer.next()
+        while type(lexeme) != "TokenEOF":
+            if type(lexeme) == "TokenError":
+                raise CoastalParseError(lexeme.lexeme, lexeme.line)
+            self.lexemes.append(lexeme)
+            lexeme = lexer.next()
+
+        if ignore_comments:
+            # I could just not add these above, but I didn't want to get
+            # into hairy conditionals...
+            self.lexemes = list(filter(lambda x: type(x) != "TokenComment", self.lexemes))
+
+        while self.current_offset < len(self.lexemes):
+            if type(self.lexemes[self.current_offset]) == "TokenIdent":
+                # could be a function call or an assignment
+                pass
+            elif type(self.lexemes[self.current_offset]) == "TokenLiteral":
+                # function call or just literal...
+                pass
+            elif type(self.lexemes[self.current_offset]) == "TokenKeyword":
+                # could be a function call (like anonymous lambda application)
+                # or another form...
+                pass
+            elif type(self.lexemes[self.current_offset]) == "TokenArrayStart":
+                # function call? like `[1 2 3] someOp [4 5 6]` but not
+                # likely
+                pass
+            elif type(self.lexemes[self.current_offset]) == "TokenBlockStart":
+                # a block of some sort...
+                pass
+            else:
+                raise CoastalParseError("Incorrect top-level form", self.lexemes[self.current_offset].line)
+
         return CoastAST()
 
 # The actual coastML -> Python compiler
