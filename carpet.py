@@ -877,21 +877,38 @@ class CoastalParser:
         while self.current_offset < len(self.lexemes):
             if type(self.lexemes[self.current_offset]) == "TokenIdent":
                 # could be a function call or an assignment
-                pass
+                if type(self.lexemes[self.current_offset + 1]) == "TokenAssign":
+                    pass
+                elif type(self.lexemes[self.current_offset + 1) == "TokenSemi":
+                    pass
+                else:
+                    self.parse_function()
             elif type(self.lexemes[self.current_offset]) == "TokenLiteral":
                 # function call or just literal...
-                pass
+                self.parse_call()
+            elif type(self.lexemes[self.current_offset]) == "TokenParenStart":
+                self.parse_call()
             elif type(self.lexemes[self.current_offset]) == "TokenKeyword":
                 # could be a function call (like anonymous lambda application)
                 # or another form...
-                pass
+                cur_lex = self.lexemes[self.current_offset]
+                if cur_lex.lexeme == "case":
+                    pass
+                elif cur_lex.lexeme == "fn":
+                    pass
+                elif cur_lex.lexeme == "gn":
+                    pass
+                elif cur_lex.lexeme == "fc":
+                    pass
+                elif cur_lex.lexeme == "type":
+                    pass
             elif type(self.lexemes[self.current_offset]) == "TokenArrayStart":
                 # function call? like `[1 2 3] someOp [4 5 6]` but not
                 # likely
-                pass
+                self.parse_call()
             elif type(self.lexemes[self.current_offset]) == "TokenBlockStart":
                 # a block of some sort...
-                pass
+                self.parse_block()
             else:
                 raise CoastalParseError("Incorrect top-level form", self.lexemes[self.current_offset].line)
 
