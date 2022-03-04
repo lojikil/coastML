@@ -845,8 +845,11 @@ class CoastalParser:
                 return True
         return False
 
+    def is_assignment(self, o):
+        return isinstance(o, TokenOperator) and o.lexeme == "="
+
     def parse_assignment(self):
-        if not isinstance(self.lexemes[self.current_offset + 1], TokenAssign):
+        if not self.is_assignment(self.lexemes[self.current_offset + 1]):
             raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
         name_o = self.current_offset
         self.current_offset += 2
@@ -982,11 +985,11 @@ class CoastalParser:
             self.sub_parse()
         elif type(self.lexemes[self.current_offset]) == TokenIdent:
             # could be a function call or an assignment
-            if type(self.lexemes[self.current_offset + 1]) == TokenAssign:
+            if self.is_assignment(self.lexemes[self.current_offset + 1]):
                 return self.parse_assignment()
             else:
                 return self.parse_call()
-        elif type(self.lexemes[self.current_offset]) == TokenLiteral:
+        elif self.simple_value(self.lexemes[self.current_offset]):
             # function call or just literal...
             return self.parse_call()
         elif type(self.lexemes[self.current_offset]) == TokenParenStart:
