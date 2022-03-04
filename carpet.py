@@ -919,7 +919,21 @@ class CoastalParser:
                 res = self.sub_parse()
                 subcaptures.append(res)
         if len(subcaptures) == 1:
+            return subcaptures[0]
+        elif isinstance(subcaptures[0], CoastLiteralAST):
+            # parse an operator call here, use shunting yard
             pass
+        elif self.is_callable(subcaptures[0]):
+            # this should probably just be an ident check
+            # that's the only _real_ ambiguity here...
+            # we also need to make sure we can operate if a
+            # cut, fn, fc, or gn is the first here...
+            if self.is_operator(subcaptures[1]):
+                # parse an operator call here
+                pass
+            else:
+                # make a function call here...
+                pass
         else:
             # here we want to turn this into a CoastAST that we
             # can treat as an ident/literal value
