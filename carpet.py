@@ -653,11 +653,9 @@ class CoastAST:
         return "Coast {0}".format(depth)
 
     def indent(self, depth):
-        print("in indent?", depth)
         res = ""
         for i in range(0, depth):
             res += "    "
-        print(len(res))
         return res
 
     def __str__(self):
@@ -777,12 +775,10 @@ class CoastBlockAST(CoastAST):
     def to_coast(self, depth=0):
         if depth == 0:
             joiner = self.indent(1) + "\n"
-            print("jointer:", len(joiner))
         else:
             joiner = self.indent(depth=depth + 1) +"\n"
         progn = joiner.join([x.to_coast() for x in self.progn])
         progn = self.indent(1) + progn
-        print(progn)
         # we can maybe use depth for indent here?
         return "{{\n{0}\n}}".format(progn)
 
@@ -838,7 +834,6 @@ class CoastalParser:
         self.asts = []
 
     def simple_value(self, v):
-        print("simple_value:", type(v))
         ts = [TokenChar, TokenString, TokenBin, TokenOct,
               TokenHex, TokenInt, TokenFloat, TokenBool]
         for t in ts:
@@ -868,7 +863,6 @@ class CoastalParser:
         return CoastBlockAST(res)
 
     def parse_simple_value(self):
-        print(self.current_offset, len(self.lexemes), self.lexemes)
         if self.simple_value(self.lexemes[self.current_offset]):
             self.current_offset += 1
             return CoastLiteralAST(type(self.lexemes[self.current_offset - 1]),
@@ -902,7 +896,6 @@ class CoastalParser:
         # we can p easily check what all the subcaptures are, and do
         # shunting yard from there...
         while True:
-            print("here in loop?", self.current_offset, type(self.lexemes[self.current_offset]))
             if self.simple_value(self.lexemes[self.current_offset]):
                 subcaptures.append(self.parse_simple_value())
             elif isinstance(self.lexemes[self.current_offset], TokenArrayStart):
@@ -931,8 +924,6 @@ class CoastalParser:
             return subcaptures[0]
         elif isinstance(subcaptures[0], CoastLiteralAST):
             # parse an operator call here, use shunting yard
-            print('here 929')
-            print(subcaptures)
             op = subcaptures[1]
             args = []
             for i in range(0, len(subcaptures)):
@@ -941,7 +932,7 @@ class CoastalParser:
                 elif subcaptures[i].lexeme == op.lexeme:
                     pass
                 else:
-                    raise CoastParseError("Attempted to use mis-matched operators", subcaptures[i].line)
+                    raise CoastalParseError("Attempted to use mis-matched operators", subcaptures[i].line)
             return CoastOpCallAST(op, args)
         elif self.is_callable(subcaptures[0]):
             # this should probably just be an ident check
