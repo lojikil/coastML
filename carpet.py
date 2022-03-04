@@ -838,6 +838,7 @@ class CoastalParser:
         self.asts = []
 
     def simple_value(self, v):
+        print("simple_value:", type(v))
         ts = [TokenChar, TokenString, TokenBin, TokenOct,
               TokenHex, TokenInt, TokenFloat, TokenBool]
         for t in ts:
@@ -901,6 +902,7 @@ class CoastalParser:
         # we can p easily check what all the subcaptures are, and do
         # shunting yard from there...
         while True:
+            print("here in loop?", self.current_offset, type(self.lexemes[self.current_offset]))
             if self.simple_value(self.lexemes[self.current_offset]):
                 subcaptures.append(self.parse_simple_value())
             elif isinstance(self.lexemes[self.current_offset], TokenArrayStart):
@@ -916,8 +918,12 @@ class CoastalParser:
                 break;
             elif isinstance(self.lexemes[self.current_offset], TokenCallStart):
                 subcaptures.append(self.parse_call(paren=True))
-            elif isinstance(self.lexemes[self.current_offset], TokenCutStart):
+            elif isinstance(self.lexemes[self.current_offset], TokenCut):
                 subcaptures.append(self.parse_cut())
+            elif isinstance(self.lexemes[self.current_offset], TokenIdent) or \
+                 isinstance(self.lexemes[self.current_offset], TokenOperator):
+                subcaptures.append(self.lexemes[self.current_offset])
+                self.current_offset += 1
             else:
                 res = self.sub_parse()
                 subcaptures.append(res)
@@ -925,7 +931,18 @@ class CoastalParser:
             return subcaptures[0]
         elif isinstance(subcaptures[0], CoastLiteralAST):
             # parse an operator call here, use shunting yard
-            pass
+            print('here 929')
+            print(subcaptures)
+            op = subcaptures[1]
+            args = []
+            for i in range(0, len(subcaptures)):
+                if i % 2 == 0:
+                    args.append(subcaptures[i])
+                elif subcaptures[i].lexeme == op.lexeme:
+                    pass
+                else:
+                    raise CoastParseError("Attempted to use mis-matched operators", subcaptures[i].line)
+            return CoastOpCallAST(op, args)
         elif self.is_callable(subcaptures[0]):
             # this should probably just be an ident check
             # that's the only _real_ ambiguity here...
@@ -992,7 +1009,7 @@ class CoastalParser:
         elif self.simple_value(self.lexemes[self.current_offset]):
             # function call or just literal...
             return self.parse_call()
-        elif type(self.lexemes[self.current_offset]) == TokenParenStart:
+        elif type(self.lexemes[self.current_offset]) == TokenCallStart:
             return self.parse_call()
         elif type(self.lexemes[self.current_offset]) == TokenKeyword:
             # could be a function call (like anonymous lambda application)
@@ -1015,7 +1032,7 @@ class CoastalParser:
         elif type(self.lexemes[self.current_offset]) == TokenBlockStart:
             # a block of some sort...
             return self.parse_block()
-        elif type(self.lexemes[self.current_offset]) == TokenCutStart:
+        elif type(self.lexemes[self.current_offset]) == TokenCut:
             return self.parse_cut()
         elif type(self.lexemes[self.current_offset]) == TokenCallStart:
             return self.parse_call(paren=True)
