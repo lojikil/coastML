@@ -846,7 +846,7 @@ class CoastalParser:
         return False
 
     def parse_assignment(self):
-        if not isinstance(self.lexemes[self.current_offset + 1], TokenAssign:
+        if not isinstance(self.lexemes[self.current_offset + 1], TokenAssign):
             raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
         name_o = self.current_offset
         self.current_offset += 2
@@ -870,6 +870,22 @@ class CoastalParser:
             return CoastLiteralAST(type(self.lexemes[self.current_offset - 1]),
                                    self.lexemes[self.current_offset - 1].lexeme)
 
+    def parse_array_literal(self):
+        self.current_offset += 1
+        res = []
+        while self.current_offset < len(self.lexemes):
+            if isinstance(self.lexemes[self.current_offset], TokenArrayEnd):
+                break
+            elif self.simple_value(self.lexemes[self.current_offset]):
+                res.append(self.parse_simple_value())
+            elif isinstance(self.lexemes[self.current_offset], TokenComma):
+                # commas aren't required, but we parse them if we get
+                # them
+                self.current_offset += 1
+            else:
+                res.append(self.sub_parse())
+        return CoastLiteralAST(TokenArrayStart, res)
+
     def parse_call(self, paren=False):
         subcaptures = []
         suboffset = 0
@@ -883,17 +899,16 @@ class CoastalParser:
         # shunting yard from there...
         while True:
             if self.simple_value(self.lexemes[self.current_offset]):
-                self.current_offset += 1
                 subcaptures.append(self.parse_simple_value())
             elif isinstance(self.lexemes[self.current_offset], TokenArrayStart):
                 subcaptures.append(self.parse_array_literal())
             elif paren == False and isinstance(self.lexemes[self.current_offset], TokenSemiColon):
                 self.current_offset += 1
                 break
-            elif paren == False and isinstance(self.lexemes[self.current_offset], TokenBlockEnd)
+            elif paren == False and isinstance(self.lexemes[self.current_offset], TokenBlockEnd):
                 # we don't increment current_offset here because a block needs to consume it
                 break
-            elif paren and isinstance(self.lexemes[self.current_offset, TokenCallEnd)
+            elif paren and isinstance(self.lexemes[self.current_offset], TokenCallEnd):
                 self.current_offset += 1
                 break;
             elif isinstance(self.lexemes[self.current_offset], TokenCallStart):
