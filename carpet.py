@@ -837,6 +837,126 @@ class CoastalParser:
         self.lexemes = []
         self.asts = []
 
+    def parse_assignment(self):
+        if type(self.lexemes[self.current_offset + 1]) != "TokenAssign":
+            raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
+        name_o = self.current_offset
+        self.current_offset += 2
+        value = self.sub_parse()
+        name = CoastIdentAST(type(self.lexemes[name_o]), self.lexemes[name_o].lexeme)
+        return CoastAssignAST(name, value)
+
+    def parse_block(self):
+        pass
+
+    def parse_call(self):
+        subcaptures = []
+        suboffset = 0
+        # We need to figure out a simple way of detecting which of the two
+        # cases we're in (see below in callable), as well as handling
+        # parenthetical call vs "naked" call
+        while True:
+            if self.simple_value(self.lexemes[current_offset]):
+                subcaptures.append(self.parse_simple_value())
+            elif type(self.lexemes[self.current_offset]) == "TokenArrayStart":
+                subcaptures.append(self.parse_array_literal())
+            elif self.callable(self.lexemes[self.current_offset]):
+                # we need to check if we're in a certain position or not
+                # really, I should just setup the shunting yard here...
+                # we also need to know what we just had; for example:
+                # `foo bar baz` is a function call with `foo` as the
+                # actual callable, and `bar` & `baz` as arguments,
+                # however `foo + bar + baz`, `+` is the callable,
+                # and the others are arguments.
+                pass
+            else:
+                res = self.sub_parse()
+                subcaptures.append(res)
+        if len(subcaptures) > 1:
+            pass
+        else:
+            # here we want to turn this into a CoastAST that we
+            # can treat as an ident/literal value
+            pass
+
+    def parse_case(self):
+        # we need to support case-as-case as well as case-as-cond
+        # the case form in coastML is deceptively simple:
+        #
+        # [source]
+        # ----
+        # case x
+        #     | 10 { print_endline "it's ten" }
+        #     | 11 { print_endline "it's eleven" }
+        #     | _  { print_endline "it's something else" }
+        # esac
+        # ----
+        #
+        # but in reality, it's actually a bit more:
+        #
+        # . we have guards that we have to parse
+        # . if we don't have an initial condition, it's really a `cond`
+        pass
+
+    def parse_cut(self):
+        pass
+
+    def parse_fc(self):
+        pass
+
+    def parse_fn(self):
+        pass
+
+    def parse_function(self):
+        pass
+
+    def parse_gn(self):
+        pass
+
+    def parse_type(self):
+        pass
+
+    def sub_parse(self):
+        if type(self.lexemes[self.current_offset]) == "TokenComment":
+            self.current_offset += 1
+            self.sub_parse()
+        elif type(self.lexemes[self.current_offset]) == "TokenIdent":
+            # could be a function call or an assignment
+            if type(self.lexemes[self.current_offset + 1]) == "TokenAssign":
+                return self.parse_assignment()
+            else:
+                return self.parse_call()
+        elif type(self.lexemes[self.current_offset]) == "TokenLiteral":
+            # function call or just literal...
+            return self.parse_call()
+        elif type(self.lexemes[self.current_offset]) == "TokenParenStart":
+            return self.parse_call()
+        elif type(self.lexemes[self.current_offset]) == "TokenKeyword":
+            # could be a function call (like anonymous lambda application)
+            # or another form...
+            cur_lex = self.lexemes[self.current_offset]
+            if cur_lex.lexeme == "case":
+                return self.parse_case()
+            elif cur_lex.lexeme == "fn":
+                return self.parse_fn()
+            elif cur_lex.lexeme == "gn":
+                return self.parse_gn()
+            elif cur_lex.lexeme == "fc":
+                return self.parse_fc()
+            elif cur_lex.lexeme == "type":
+                return self.parse_type()
+        elif type(self.lexemes[self.current_offset]) == "TokenArrayStart":
+            # function call? like `[1 2 3] someOp [4 5 6]` but not
+            # likely
+            return self.parse_call()
+        elif type(self.lexemes[self.current_offset]) == "TokenBlockStart":
+            # a block of some sort...
+            return self.parse_block()
+        elif type(self.lexemes[self.current_offset]) == "TokenCutStart":
+            return self.parse_cut()
+        else:
+            raise CoastalParseError("Incorrect top-level form", self.lexemes[self.current_offset].line)
+
     def parse(self, reparse=False, ignore_comments=False):
         # There are a few different things we need to parse at the
         # top level:
@@ -875,43 +995,6 @@ class CoastalParser:
             self.lexemes = list(filter(lambda x: type(x) != "TokenComment", self.lexemes))
 
         while self.current_offset < len(self.lexemes):
-            if type(self.lexemes[self.current_offset]) == "TokenIdent":
-                # could be a function call or an assignment
-                if type(self.lexemes[self.current_offset + 1]) == "TokenAssign":
-                    pass
-                elif type(self.lexemes[self.current_offset + 1) == "TokenSemi":
-                    pass
-                else:
-                    self.parse_function()
-            elif type(self.lexemes[self.current_offset]) == "TokenLiteral":
-                # function call or just literal...
-                self.parse_call()
-            elif type(self.lexemes[self.current_offset]) == "TokenParenStart":
-                self.parse_call()
-            elif type(self.lexemes[self.current_offset]) == "TokenKeyword":
-                # could be a function call (like anonymous lambda application)
-                # or another form...
-                cur_lex = self.lexemes[self.current_offset]
-                if cur_lex.lexeme == "case":
-                    pass
-                elif cur_lex.lexeme == "fn":
-                    pass
-                elif cur_lex.lexeme == "gn":
-                    pass
-                elif cur_lex.lexeme == "fc":
-                    pass
-                elif cur_lex.lexeme == "type":
-                    pass
-            elif type(self.lexemes[self.current_offset]) == "TokenArrayStart":
-                # function call? like `[1 2 3] someOp [4 5 6]` but not
-                # likely
-                self.parse_call()
-            elif type(self.lexemes[self.current_offset]) == "TokenBlockStart":
-                # a block of some sort...
-                self.parse_block()
-            else:
-                raise CoastalParseError("Incorrect top-level form", self.lexemes[self.current_offset].line)
-
         return CoastAST()
 
 # The actual coastML -> Python compiler
