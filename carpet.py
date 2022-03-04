@@ -837,8 +837,16 @@ class CoastalParser:
         self.lexemes = []
         self.asts = []
 
+    def simple_value(self, v):
+        ts = [TokenChar, TokenString, TokenBin, TokenOct,
+              TokenHex, TokenInt, TokenFloat, TokenBool]
+        for t in ts:
+            if isinstance(v, t):
+                return True
+        return False
+
     def parse_assignment(self):
-        if type(self.lexemes[self.current_offset + 1]) != "TokenAssign":
+        if not isinstance(self.lexemes[self.current_offset + 1], TokenAssign:
             raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
         name_o = self.current_offset
         self.current_offset += 2
@@ -847,32 +855,55 @@ class CoastalParser:
         return CoastAssignAST(name, value)
 
     def parse_block(self):
-        pass
+        res = []
+        while True:
+            if isinstance(self.lexemes[current_offset], TokenEndBlock):
+                break
+            res.append(self.subparse())
 
-    def parse_call(self):
+        return CoastBlockAST(res)
+
+    def parse_simple_value(self):
+        print(self.current_offset, len(self.lexemes), self.lexemes)
+        if self.simple_value(self.lexemes[self.current_offset]):
+            self.current_offset += 1
+            return CoastLiteralAST(type(self.lexemes[self.current_offset - 1]),
+                                   self.lexemes[self.current_offset - 1].lexeme)
+
+    def parse_call(self, paren=False):
         subcaptures = []
         suboffset = 0
         # We need to figure out a simple way of detecting which of the two
         # cases we're in (see below in callable), as well as handling
         # parenthetical call vs "naked" call
+        # it could be even simpler: just check right here what the
+        # first two tokens are, and use those
+        # right, so do a first pass over to collapse everything, then
+        # we can p easily check what all the subcaptures are, and do
+        # shunting yard from there...
         while True:
-            if self.simple_value(self.lexemes[current_offset]):
+            if self.simple_value(self.lexemes[self.current_offset]):
+                self.current_offset += 1
                 subcaptures.append(self.parse_simple_value())
-            elif type(self.lexemes[self.current_offset]) == "TokenArrayStart":
+            elif isinstance(self.lexemes[self.current_offset], TokenArrayStart):
                 subcaptures.append(self.parse_array_literal())
-            elif self.callable(self.lexemes[self.current_offset]):
-                # we need to check if we're in a certain position or not
-                # really, I should just setup the shunting yard here...
-                # we also need to know what we just had; for example:
-                # `foo bar baz` is a function call with `foo` as the
-                # actual callable, and `bar` & `baz` as arguments,
-                # however `foo + bar + baz`, `+` is the callable,
-                # and the others are arguments.
-                pass
+            elif paren == False and isinstance(self.lexemes[self.current_offset], TokenSemiColon):
+                self.current_offset += 1
+                break
+            elif paren == False and isinstance(self.lexemes[self.current_offset], TokenBlockEnd)
+                # we don't increment current_offset here because a block needs to consume it
+                break
+            elif paren and isinstance(self.lexemes[self.current_offset, TokenCallEnd)
+                self.current_offset += 1
+                break;
+            elif isinstance(self.lexemes[self.current_offset], TokenCallStart):
+                subcaptures.append(self.parse_call(paren=True))
+            elif isinstance(self.lexemes[self.current_offset], TokenCutStart):
+                subcaptures.append(self.parse_cut())
             else:
                 res = self.sub_parse()
                 subcaptures.append(res)
-        if len(subcaptures) > 1:
+        if len(subcaptures) == 1:
             pass
         else:
             # here we want to turn this into a CoastAST that we
@@ -917,21 +948,21 @@ class CoastalParser:
         pass
 
     def sub_parse(self):
-        if type(self.lexemes[self.current_offset]) == "TokenComment":
+        if type(self.lexemes[self.current_offset]) == TokenComment:
             self.current_offset += 1
             self.sub_parse()
-        elif type(self.lexemes[self.current_offset]) == "TokenIdent":
+        elif type(self.lexemes[self.current_offset]) == TokenIdent:
             # could be a function call or an assignment
-            if type(self.lexemes[self.current_offset + 1]) == "TokenAssign":
+            if type(self.lexemes[self.current_offset + 1]) == TokenAssign:
                 return self.parse_assignment()
             else:
                 return self.parse_call()
-        elif type(self.lexemes[self.current_offset]) == "TokenLiteral":
+        elif type(self.lexemes[self.current_offset]) == TokenLiteral:
             # function call or just literal...
             return self.parse_call()
-        elif type(self.lexemes[self.current_offset]) == "TokenParenStart":
+        elif type(self.lexemes[self.current_offset]) == TokenParenStart:
             return self.parse_call()
-        elif type(self.lexemes[self.current_offset]) == "TokenKeyword":
+        elif type(self.lexemes[self.current_offset]) == TokenKeyword:
             # could be a function call (like anonymous lambda application)
             # or another form...
             cur_lex = self.lexemes[self.current_offset]
@@ -945,17 +976,28 @@ class CoastalParser:
                 return self.parse_fc()
             elif cur_lex.lexeme == "type":
                 return self.parse_type()
-        elif type(self.lexemes[self.current_offset]) == "TokenArrayStart":
+        elif type(self.lexemes[self.current_offset]) == TokenArrayStart:
             # function call? like `[1 2 3] someOp [4 5 6]` but not
             # likely
             return self.parse_call()
-        elif type(self.lexemes[self.current_offset]) == "TokenBlockStart":
+        elif type(self.lexemes[self.current_offset]) == TokenBlockStart:
             # a block of some sort...
             return self.parse_block()
-        elif type(self.lexemes[self.current_offset]) == "TokenCutStart":
+        elif type(self.lexemes[self.current_offset]) == TokenCutStart:
             return self.parse_cut()
+        elif type(self.lexemes[self.current_offset]) == TokenCallStart:
+            return self.parse_call(paren=True)
         else:
             raise CoastalParseError("Incorrect top-level form", self.lexemes[self.current_offset].line)
+
+    def load(self):
+        lexer = Lex(self.src)
+        lexeme = lexer.next()
+        while not isinstance(lexeme, TokenEOF):
+            if isinstance(lexeme, TokenError):
+                raise CoastalParseError(lexeme.lexeme, lexeme.line)
+            self.lexemes.append(lexeme)
+            lexeme = lexer.next()
 
     def parse(self, reparse=False, ignore_comments=False):
         # There are a few different things we need to parse at the
@@ -981,13 +1023,7 @@ class CoastalParser:
         if len(self.lexemes) > 0:
             return self.asts
 
-        lexer = Lex(self.src)
-        lexeme = lexer.next()
-        while type(lexeme) != "TokenEOF":
-            if type(lexeme) == "TokenError":
-                raise CoastalParseError(lexeme.lexeme, lexeme.line)
-            self.lexemes.append(lexeme)
-            lexeme = lexer.next()
+        self.load()
 
         if ignore_comments:
             # I could just not add these above, but I didn't want to get
@@ -995,6 +1031,7 @@ class CoastalParser:
             self.lexemes = list(filter(lambda x: type(x) != "TokenComment", self.lexemes))
 
         while self.current_offset < len(self.lexemes):
+            self.asts.append(self.sub_parse())
         return CoastAST()
 
 # The actual coastML -> Python compiler
