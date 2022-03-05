@@ -863,10 +863,11 @@ class CoastalParser:
 
     def parse_block(self):
         res = []
+        self.current_offset += 1
         while True:
-            if isinstance(self.lexemes[current_offset], TokenEndBlock):
+            if isinstance(self.lexemes[self.current_offset], TokenBlockEnd):
                 break
-            res.append(self.subparse())
+            res.append(self.sub_parse())
 
         return CoastBlockAST(res)
 
@@ -996,10 +997,16 @@ class CoastalParser:
         pass
 
     def parse_fn(self):
-        pass
-
-    def parse_function(self):
-        pass
+        parameters = []
+        body = None
+        while not isinstance(self.lexemes[self.current_offset], TokenBlockStart):
+            if not isinstance(self.lexemes[self.current_offset], TokenIdent):
+                raise CoastalParseError("fn parameters *must* be followed by idents", self.lexemes[self.current_offset].line)
+            l = self.lexemes[self.current_offset]
+            parameters.append(CoastIdentAST(TokenIdent, l.lexeme))
+            self.current_offset += 1
+        body = self.parse_block()
+        return CoastFNAST(parameters, body)
 
     def parse_gn(self):
         pass
@@ -1026,6 +1033,7 @@ class CoastalParser:
             # could be a function call (like anonymous lambda application)
             # or another form...
             cur_lex = self.lexemes[self.current_offset]
+            self.current_offset += 1
             if cur_lex.lexeme == "case":
                 return self.parse_case()
             elif cur_lex.lexeme == "fn":
