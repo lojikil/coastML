@@ -743,7 +743,7 @@ class CoastOpCallAST(CoastAST):
 
     def to_coast(self, depth=0):
         op = str(self.op)
-        data = [str(x) for x in self.data]
+        data = [x.to_coast(depth=depth + 1) for x in self.data]
         v = functools.reduce(lambda x,y: x + " " + op + " " + y, data)
         if depth > 0:
             return "({0})".format(v)
@@ -844,6 +844,14 @@ class CoastalParser:
     def is_assignment(self, o):
         return isinstance(o, TokenOperator) and o.lexeme == "="
 
+    def is_callable(self, c):
+        ts = [TokenIdent, TokenOperator, TokenNSMod, TokenTag, TokenNSADT]
+
+        for t in ts:
+            if isinstance(c, t):
+                return True
+        return False
+
     def parse_assignment(self):
         if not self.is_assignment(self.lexemes[self.current_offset + 1]):
             raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
@@ -861,6 +869,12 @@ class CoastalParser:
             res.append(self.subparse())
 
         return CoastBlockAST(res)
+
+    def parse_callable(self):
+        res = CoastIdentAST(type(self.lexemes[self.current_offset]),
+                            self.lexemes[self.current_offset].lexeme)
+        self.current_offset += 1
+        return res
 
     def parse_simple_value(self):
         if self.simple_value(self.lexemes[self.current_offset]):
@@ -910,13 +924,12 @@ class CoastalParser:
                 self.current_offset += 1
                 break;
             elif isinstance(self.lexemes[self.current_offset], TokenCallStart):
+                self.current_offset += 1
                 subcaptures.append(self.parse_call(paren=True))
             elif isinstance(self.lexemes[self.current_offset], TokenCut):
                 subcaptures.append(self.parse_cut())
-            elif isinstance(self.lexemes[self.current_offset], TokenIdent) or \
-                 isinstance(self.lexemes[self.current_offset], TokenOperator):
-                subcaptures.append(self.lexemes[self.current_offset])
-                self.current_offset += 1
+            elif self.is_callable(self.lexemes[self.current_offset]):
+                subcaptures.append(self.parse_callable())
             else:
                 res = self.sub_parse()
                 subcaptures.append(res)
@@ -929,23 +942,31 @@ class CoastalParser:
             for i in range(0, len(subcaptures)):
                 if i % 2 == 0:
                     args.append(subcaptures[i])
-                elif subcaptures[i].lexeme == op.lexeme:
+                elif subcaptures[i].identvalue == op.identvalue:
                     pass
                 else:
                     raise CoastalParseError("Attempted to use mis-matched operators", subcaptures[i].line)
             return CoastOpCallAST(op, args)
-        elif self.is_callable(subcaptures[0]):
+        elif subcaptures[0].identtype == TokenIdent and \
+             subcaptures[1].identtype == TokenOperator:
             # this should probably just be an ident check
             # that's the only _real_ ambiguity here...
             # we also need to make sure we can operate if a
             # cut, fn, fc, or gn is the first here...
-            if self.is_operator(subcaptures[1]):
-                # parse an operator call here
-                pass
-            else:
-                # make a function call here...
-                pass
+            op = subcaptures[1]
+            args = []
+            for i in range(0, len(subcaptures)):
+                if i % 2 == 0:
+                    args.append(subcaptures[i])
+                elif subcaptures[i].identvalue == op.identvalue:
+                    pass
+                else:
+                    raise CoastalParseError("Attempted to use mis-matched operators", subcaptures[i].line)
+            return CoastOpCallAST(op, args)
         else:
+            print(type(subcaptures[0]))
+            print(type(subcaptures[1]))
+            print("here?")
             # here we want to turn this into a CoastAST that we
             # can treat as an ident/literal value
             pass
