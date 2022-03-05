@@ -868,6 +868,7 @@ class CoastalParser:
             if isinstance(self.lexemes[self.current_offset], TokenBlockEnd):
                 break
             res.append(self.sub_parse())
+        self.current_offset += 1
 
         return CoastBlockAST(res)
 
