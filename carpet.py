@@ -947,7 +947,9 @@ class CoastalParser:
                 else:
                     raise CoastalParseError("Attempted to use mis-matched operators", subcaptures[i].line)
             return CoastOpCallAST(op, args)
-        elif subcaptures[0].identtype == TokenIdent and \
+        elif hasattr(subcaptures[0], "identtype") and \
+             hasattr(subcaptures[1], "identtype") and \
+             subcaptures[0].identtype == TokenIdent and \
              subcaptures[1].identtype == TokenOperator:
             # this should probably just be an ident check
             # that's the only _real_ ambiguity here...
@@ -964,12 +966,9 @@ class CoastalParser:
                     raise CoastalParseError("Attempted to use mis-matched operators", subcaptures[i].line)
             return CoastOpCallAST(op, args)
         else:
-            print(type(subcaptures[0]))
-            print(type(subcaptures[1]))
-            print("here?")
             # here we want to turn this into a CoastAST that we
             # can treat as an ident/literal value
-            pass
+            return CoastFNCallAST(subcaptures[0], subcaptures[1:])
 
     def parse_case(self):
         # we need to support case-as-case as well as case-as-cond
