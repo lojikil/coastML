@@ -1035,7 +1035,10 @@ class CoastalParser:
     def sub_parse(self):
         if type(self.lexemes[self.current_offset]) == TokenComment:
             self.current_offset += 1
-            self.sub_parse()
+            return self.sub_parse()
+        elif type(self.lexemes[self.current_offset]) == TokenSemiColon:
+            self.current_offset += 1
+            return self.sub_parse()
         elif type(self.lexemes[self.current_offset]) == TokenIdent:
             # could be a function call or an assignment
             if self.is_assignment(self.lexemes[self.current_offset + 1]):
@@ -1074,6 +1077,7 @@ class CoastalParser:
         elif type(self.lexemes[self.current_offset]) == TokenCallStart:
             return self.parse_call(paren=True)
         else:
+            print(self.lexemes[self.current_offset])
             raise CoastalParseError("Incorrect top-level form", self.lexemes[self.current_offset].line)
 
     def load(self):
