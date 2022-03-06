@@ -791,9 +791,9 @@ class CoastBlockAST(CoastAST):
 
     def to_coast(self, depth=0):
         if depth == 0:
-            joiner = self.indent(1) + "\n"
+            joiner = "\n" + self.indent(1)
         else:
-            joiner = self.indent(depth=depth + 1) +"\n"
+            joiner = ";\n" + self.indent(depth=depth + 1)
         progn = joiner.join([x.to_coast() for x in self.progn])
         progn = self.indent(1) + progn
         # we can maybe use depth for indent here?
