@@ -59,6 +59,20 @@ class TokenCut(Token):
     def __str__(self):
         return self.lexeme
 
+# TokenUnit 2 
+
+class TokenUnit(Token):
+    def __init__(self, l, o):
+        self.line = l
+        self.offset = o
+
+    def __repr__(self):
+        return "TokenUnit()"
+
+    def __str__(self):
+        return self.lexeme
+
+
 # TokenIdent 3
 
 class TokenIdent(Token):
@@ -447,7 +461,7 @@ class Lex:
         self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>-])+")
         self.operators = re.compile("^([+=!@$%^&*|?<>-])+$")
         self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod)$")
-        self.types = re.compile("^(int|float|number|string|list|array|deque)$")
+        self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit)$")
         self.bools = re.compile("^(true|false)$")
 
     def next(self):
@@ -495,6 +509,9 @@ class Lex:
                 self.offset = no
                 return TokenIdent(self.src[o:no], self.line, self.offset)
         elif self.src[o] == '(':
+            if self.src[o + 1] == ')':
+                self.offset += 2
+                return TokenUnit(self.line, self.offset)
             self.offset = o + 1
             return TokenCallStart(self.line, self.offset)
         elif self.src[o] == ')':
