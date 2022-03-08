@@ -1006,6 +1006,31 @@ class CoastalParser:
         #
         # . we have guards that we have to parse
         # . if we don't have an initial condition, it's really a `cond`
+        ic = None
+        conditions = []
+        if type(self.lexemes[self.current_offset]) == TokenCallStart:
+            ic = self.parse_call(paren=True)
+        elif type(self.lexemes[self.current_offset]) == TokenOperator and \
+             self.lexemes[self.current_offset].lexeme == "|":
+            ic = None
+        elif type(self.lexemes[self.current_offset]) == TokenIdent or \
+             type(self.lexemes[self.current_offset]) == TokenNSMod or \
+             type(self.lexemes[self.current_offset]) == TokenTag:
+            ic = self.parse_callable()
+        else:
+            raise CoastParseError("incorrectly formatted `case` form",
+                                  self.lexemes[self.current_offset].line)
+
+        while self.current_offset < len(self.lexemes):
+            if type(self.lexemes[self.current_offset]) == TokenOperator and \
+               self.lexemes[self.current_offset].lexeme == "|":
+                # parse condition next, then block
+            elif type(self.lexemes[self.current_offset]) == TokenKeyword and \
+                 self.lexemes[self.current_offset].lexeme == "esac":
+                 break
+            else:
+                raise CoastParseError("incorrectly formatted `case` form",
+                                      self.lexemes[self.current_offset].line)
         pass
 
     def parse_cut(self):
