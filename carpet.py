@@ -1234,20 +1234,39 @@ class CarpetPython:
 
     def generate_block(self, block, depth=0):
         for b in block:
-            self.generate(b)
+            self.generate(b, depth=depth+1)
 
     def generate_call(self, call, depth=0):
-        pass
+        if type(call) == CoastFNCallAST:
+            print(str(call.fn) + "(", end='')
+            l = len(call.data)
+            o = 0
+            for i in call.data:
+                self.generate_dispatch(i, depth=depth)
+                if o < (l - 1):
+                    print(", ", end='')
+                o += 1
+            print(")", end='')
+        elif type(call) == CoastOpCallAST:
+            pass
+    def generate_dispatch(self, ast, depth=0):
+        if type(ast) == CoastAssignAST and \
+           (type(ast.value) == CoastFNAST or \
+            type(ast.value) == CoastFCAST or \
+            type(ast.value) == CoastGNAST):
+            self.generate_fn(ast, depth=detph)
+        elif type(ast) == CoastAssignAST:
+            self.generate_assignment(ast, depth=depth)
+        elif type(ast) == CoastFNCallAST or \
+             type(ast) == CoastOpCallAST:
+            self.generate_call(ast, depth=depth)
+        elif type(ast) == CoastCaseAST:
+            self.generate_case(ast, depth=depth)
+        #elif type(ast) == CoastTypeAST:
+        #    self.generate_type(ast, depth=depth)
+        else:
+            print(str(ast), end='')
 
     def generate(self, depth=0):
         for ast in self.asts:
-            if type(ast) == CoastAssignAST and \
-               (type(ast.value) == CoastFNAST or \
-                type(ast.value) == CoastFCAST or \
-                type(ast.value) == CoastGNAST):
-                self.generate_fn(ast)
-            elif type(ast) == CoastAssignAST:
-                self.generate_assignment(ast)
-            elif type(ast) == CoastFNCallAST or \
-                 type(ast) == CoastOpCallAST:
-                self.generate_call(ast)
+            self.generate_dispatch(ast, depth)
