@@ -48,8 +48,8 @@ foo = fn x y {  # <1>
         | _ { print_endline "oh no, x is none of the above" } # <5>
     esac # <6>
 }
-foo 10;
-foo 20;
+foo 10 5;
+foo 20 5;
 ----
 <1> Functions are just bound variables, no special syntax
 <2> lighter weight `+case+` form
