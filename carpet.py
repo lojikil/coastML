@@ -935,7 +935,7 @@ class CoastalParser:
         # full call here, for operators
         # ... huh, the function call setup works for that, maybe follow
         # the same thing as there?
-        while True:
+        while self.current_offset < len(self.lexemes):
             if self.simple_value(self.lexemes[self.current_offset]):
                 subcaptures.append(self.parse_simple_value())
             elif isinstance(self.lexemes[self.current_offset], TokenArrayStart):
@@ -959,6 +959,7 @@ class CoastalParser:
             else:
                 res = self.sub_parse()
                 subcaptures.append(res)
+
         if len(subcaptures) == 1:
             return subcaptures[0]
         elif isinstance(subcaptures[0], CoastLiteralAST):
@@ -1025,7 +1026,8 @@ class CoastalParser:
              type(self.lexemes[self.current_offset]) == TokenTag:
             ic = self.parse_callable()
         else:
-            raise CoastParseError("incorrectly formatted `case` form",
+            print(self.lexemes[self.current_offset])
+            raise CoastalParseError("incorrectly formatted `case` form",
                                   self.lexemes[self.current_offset].line)
 
         while self.current_offset < len(self.lexemes):
@@ -1037,8 +1039,11 @@ class CoastalParser:
                     c = self.parse_call(paren=True)
                 elif self.simple_value(self.lexemes[self.current_offset]):
                     c = self.parse_simple_value()
+                elif self.is_callable(self.lexemes[self.current_offset]):
+                    c = self.parse_callable()
                 else:
-                    raise CoastParseError("case conditions must be a value or a call",
+                    print(self.lexemes[self.current_offset])
+                    raise CoastalParseError("case conditions must be a value or a call",
                                           self.lexemes[self.current_offset].line)
                 b = self.parse_block()
                 conditions.append([c, b])
