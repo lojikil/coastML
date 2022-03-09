@@ -1187,9 +1187,43 @@ class CoastalParser:
 
         while self.current_offset < len(self.lexemes):
             self.asts.append(self.sub_parse())
-        return CoastAST()
+        return self.asts
 
 # The actual coastML -> Python compiler
 # named after the "coastal carpet python"
 class CarpetPython:
-    pass
+    def __init__(self, src):
+        self.fns = {}
+        self.vals = {}
+        self.src = src
+        self.asts = []
+
+    def load(self):
+        self.fns = {}
+        self.vals = {}
+        self.asts = []
+        parser = CoastalParser(self.src)
+        self.asts = parser.parse()
+        for ast in self.asts:
+            if type(ast) == CoastAssignAST and \
+               (type(ast.value) == CoastFNAST or \
+                type(ast.value) == CoastFCAST or \
+                type(ast.value) == CoastGNAST):
+                n = ast.name.identvalue
+                self.fns[n] = ast.value
+            elif type(ast) == CoastAssignAST:
+                n = ast.name.identvalue
+                self.vals[n] = ast.value
+
+    def generate(self):
+        for ast in self.asts:
+            if type(ast) == CoastAssignAST and \
+               (type(ast.value) == CoastFNAST or \
+                type(ast.value) == CoastFCAST or \
+                type(ast.value) == CoastGNAST):
+                print("function definition")
+            elif type(ast) == CoastAssignAST:
+                print("value assignment")
+            elif type(ast) == CoastFNCallAST or \
+                 type(ast) == CoastOpCallAST:
+                print("function or operator call")
