@@ -1192,11 +1192,12 @@ class CoastalParser:
 # The actual coastML -> Python compiler
 # named after the "coastal carpet python"
 class CarpetPython:
-    def __init__(self, src):
+    def __init__(self, src, indent="    "):
         self.fns = {}
         self.vals = {}
         self.src = src
         self.asts = []
+        self.indent = indent
 
     def load(self):
         self.fns = {}
@@ -1215,15 +1216,38 @@ class CarpetPython:
                 n = ast.name.identvalue
                 self.vals[n] = ast.value
 
-    def generate(self):
+    def generate_indent(self, cnt):
+        for i in range(0, cnt):
+            print(self.indent)
+
+    def generate_fn(self, fn, depth=0):
+        n = fn.name.identvalue
+        v = fn.value
+        params = ", ".join([x.to_coast() for x in v.parameters])
+        print("def {0}({1}):\n".format(n, params))
+
+    def generate_assignment(self, v, depth=0):
+        pass
+
+    def generate_literal(self, v, depth=0):
+        pass
+
+    def generate_block(self, block, depth=0):
+        for b in block:
+            self.generate(b)
+
+    def generate_call(self, call, depth=0):
+        pass
+
+    def generate(self, depth=0):
         for ast in self.asts:
             if type(ast) == CoastAssignAST and \
                (type(ast.value) == CoastFNAST or \
                 type(ast.value) == CoastFCAST or \
                 type(ast.value) == CoastGNAST):
-                print("function definition")
+                self.generate_fn(ast)
             elif type(ast) == CoastAssignAST:
-                print("value assignment")
+                self.generate_assignment(ast)
             elif type(ast) == CoastFNCallAST or \
                  type(ast) == CoastOpCallAST:
-                print("function or operator call")
+                self.generate_call(ast)
