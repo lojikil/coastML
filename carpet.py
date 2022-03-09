@@ -677,7 +677,7 @@ class CoastAST:
         pass
 
     def __repr__(self):
-        return "CoastAST()"
+        return "CoastAST({0})".format(self.to_coast())
 
     def to_coast(self, depth=0):
         return "Coast {0}".format(depth)
