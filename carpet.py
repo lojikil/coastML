@@ -575,7 +575,10 @@ class Lex:
             # case here and then test format? Honestly very similar
             # to what I'm doing for idents/tags/keywords below...
             no = o + 1
-            if self.src[no] == 'b':
+            if no >= len(self.src):
+                self.offset = no
+                return TokenInt(self.src[o:no], self.line, self.offset)
+            elif self.src[no] == 'b':
                 no += 1
                 while no < len(self.src) and self.src[no] in '01':
                     no += 1
@@ -605,11 +608,18 @@ class Lex:
                     no += 1
                 self.offset = no
                 return TokenFloat(self.src[o:no], self.line, self.offset)
+            elif self.src[no] in "()[];,\n\r ":
+                self.offset = no
+                return TokenInt(self.src[o:no], self.line, self.offset)
             else:
                 return TokenError("Incorrectly formatted atom/numeral", self.line, self.offset)
         elif self.src[o] in '123456789':
             no = o + 1
-            if self.src[no] in '0123456789':
+
+            if no >= len(self.src):
+                self.offset = no
+                return TokenInt(self.src[o:no], self.line, self.offset)
+            elif self.src[no] in '0123456789':
                 no += 1
                 while no < len(self.src) and self.src[no] in '0123456789':
                     no += 1
@@ -621,6 +631,9 @@ class Lex:
                     no += 1
                 self.offset = no
                 return TokenFloat(self.src[o:no], self.line, self.offset)
+            elif self.src[no] in "()[];,\n\r ":
+                self.offset = no
+                return TokenInt(self.src[o:no], self.line, self.offset)
             else:
                 return TokenError("Incorrectly formatted numeral", self.line, self.offset)
         elif self.rest_ident.match(self.src[o]):
