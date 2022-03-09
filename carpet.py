@@ -928,6 +928,13 @@ class CoastalParser:
         # right, so do a first pass over to collapse everything, then
         # we can p easily check what all the subcaptures are, and do
         # shunting yard from there...
+        #
+        # Additionally, we need to actually read all values here until
+        # the ';' really. Some of these are documented in the current
+        # failures file, but basically we need to make sure we grab the
+        # full call here, for operators
+        # ... huh, the function call setup works for that, maybe follow
+        # the same thing as there?
         while True:
             if self.simple_value(self.lexemes[self.current_offset]):
                 subcaptures.append(self.parse_simple_value())
@@ -1024,14 +1031,24 @@ class CoastalParser:
         while self.current_offset < len(self.lexemes):
             if type(self.lexemes[self.current_offset]) == TokenOperator and \
                self.lexemes[self.current_offset].lexeme == "|":
-                # parse condition next, then block
+                self.current_offset += 1
+                if type(self.lexemes[self.current_offset]) == TokenCallStart:
+                    self.current_offset += 1
+                    c = self.parse_call(paren=True)
+                elif self.simple_value(self.lexemes[self.current_offset]):
+                    c = self.parse_simple_value()
+                else:
+                    raise CoastParseError("case conditions must be a value or a call",
+                                          self.lexemes[self.current_offset].line)
+                b = self.parse_block()
+                conditions.append([c, b])
             elif type(self.lexemes[self.current_offset]) == TokenKeyword and \
                  self.lexemes[self.current_offset].lexeme == "esac":
-                 break
+                break
             else:
                 raise CoastParseError("incorrectly formatted `case` form",
                                       self.lexemes[self.current_offset].line)
-        pass
+        return CoastCaseAST(ic, conditions)
 
     def parse_cut(self):
         pass
@@ -1074,7 +1091,8 @@ class CoastalParser:
             # function call or just literal...
             return self.parse_call()
         elif type(self.lexemes[self.current_offset]) == TokenCallStart:
-            return self.parse_call()
+            self.current_offset += 1
+            return self.parse_call(paren=True)
         elif type(self.lexemes[self.current_offset]) == TokenKeyword:
             # could be a function call (like anonymous lambda application)
             # or another form...
