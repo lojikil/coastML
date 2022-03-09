@@ -1233,6 +1233,9 @@ class CarpetPython:
         pass
 
     def generate_block(self, block, depth=0):
+        # we need to track if this or the call
+        # is in the tail position, and return
+        # from there, or really any form...
         for b in block:
             self.generate(b, depth=depth+1)
 
@@ -1249,6 +1252,7 @@ class CarpetPython:
             print(")", end='')
         elif type(call) == CoastOpCallAST:
             pass
+
     def generate_dispatch(self, ast, depth=0):
         if type(ast) == CoastAssignAST and \
            (type(ast.value) == CoastFNAST or \
