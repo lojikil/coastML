@@ -1223,7 +1223,7 @@ class CarpetPython:
 
     def generate_indent(self, cnt):
         for i in range(0, cnt):
-            print(self.indent)
+            print(self.indent, end='')
 
     # we have to lift lambdas most places in Python
     # because our lambdas are much more expressive
@@ -1233,7 +1233,7 @@ class CarpetPython:
         n = fn.name.identvalue
         v = fn.value
         params = ", ".join([x.to_coast() for x in v.parameters])
-        print("def {0}({1}):\n".format(n, params))
+        print("def {0}({1}):".format(n, params))
         self.generate_block(v.body, tail=tail)
 
     def generate_assignment(self, v, depth=0):
@@ -1252,6 +1252,7 @@ class CarpetPython:
         l = len(block.progn)
         o = 0
         for b in block.progn:
+            self.generate_indent(depth + 1)
             if tail and o == (l - 1):
                 self.generate_dispatch(b, depth=depth+1, tail=True)
             else:
@@ -1314,3 +1315,4 @@ class CarpetPython:
         # choose.
         for ast in self.asts:
             self.generate_dispatch(ast, depth, tail=True)
+            print("")
