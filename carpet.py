@@ -1220,6 +1220,10 @@ class CarpetPython:
         for i in range(0, cnt):
             print(self.indent)
 
+    # we have to lift lambdas most places in Python
+    # because our lambdas are much more expressive
+    # than the ones that Python allows; probably need
+    # to run a quick check on them...
     def generate_fn(self, fn, depth=0):
         n = fn.name.identvalue
         v = fn.value
@@ -1227,19 +1231,25 @@ class CarpetPython:
         print("def {0}({1}):\n".format(n, params))
 
     def generate_assignment(self, v, depth=0):
-        pass
+        n = v.name.identvalue
+        v = v.value
+        print("{0} = ".format(n), end='')
+        self.generate_dispatch(v, depth=depth+1)
 
     def generate_literal(self, v, depth=0):
-        pass
+        print(v.value, end='')
 
-    def generate_block(self, block, depth=0):
+    def generate_block(self, block, depth=0, tail=False):
         # we need to track if this or the call
         # is in the tail position, and return
         # from there, or really any form...
         for b in block:
-            self.generate(b, depth=depth+1)
+            self.generate_dispatch(b, depth=depth+1)
 
-    def generate_call(self, call, depth=0):
+    def generate_call(self, call, depth=0, tail=False):
+        if tail:
+            print("return ", end='')
+
         if type(call) == CoastFNCallAST:
             print(str(call.fn) + "(", end='')
             l = len(call.data)
@@ -1251,9 +1261,18 @@ class CarpetPython:
                 o += 1
             print(")", end='')
         elif type(call) == CoastOpCallAST:
-            pass
+            op = call.op.identvalue
+            print("(", end='')
+            l = len(call.data)
+            o = 0
+            for i in call.data:
+                self.generate_dispatch(i, depth=depth + 1)
+                if o < (l - 1):
+                    print(" {0} ".format(op), end='')
+                o += 1
+            print(")", end='')
 
-    def generate_dispatch(self, ast, depth=0):
+    def generate_dispatch(self, ast, depth=0, tail=False):
         if type(ast) == CoastAssignAST and \
            (type(ast.value) == CoastFNAST or \
             type(ast.value) == CoastFCAST or \
