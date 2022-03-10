@@ -18,6 +18,7 @@
 import re
 import string
 import functools
+import io
 
 class Token:
     def __repr__(self):
@@ -1192,12 +1193,16 @@ class CoastalParser:
 # The actual coastML -> Python compiler
 # named after the "coastal carpet python"
 class CarpetPython:
-    def __init__(self, src, indent="    "):
+    def __init__(self, src, indent="    ", fh=None):
         self.fns = {}
         self.vals = {}
         self.src = src
         self.asts = []
         self.indent = indent
+        if fh is None:
+            self.fh = io.StringIO("")
+        else:
+            self.fh = fh
 
     def load(self):
         self.fns = {}
@@ -1224,11 +1229,12 @@ class CarpetPython:
     # because our lambdas are much more expressive
     # than the ones that Python allows; probably need
     # to run a quick check on them...
-    def generate_fn(self, fn, depth=0):
+    def generate_fn(self, fn, depth=0, tail=False):
         n = fn.name.identvalue
         v = fn.value
         params = ", ".join([x.to_coast() for x in v.parameters])
         print("def {0}({1}):\n".format(n, params))
+        self.generate_block(v.body, tail=tail)
 
     def generate_assignment(self, v, depth=0):
         n = v.name.identvalue
@@ -1243,8 +1249,15 @@ class CarpetPython:
         # we need to track if this or the call
         # is in the tail position, and return
         # from there, or really any form...
-        for b in block:
-            self.generate_dispatch(b, depth=depth+1)
+        l = len(block.progn)
+        o = 0
+        for b in block.progn:
+            if tail and o == (l - 1):
+                self.generate_dispatch(b, depth=depth+1, tail=True)
+            else:
+                self.generate_dispatch(b, depth=depth+1)
+            print("")
+            o += 1
 
     def generate_call(self, call, depth=0, tail=False):
         if tail:
@@ -1277,19 +1290,24 @@ class CarpetPython:
            (type(ast.value) == CoastFNAST or \
             type(ast.value) == CoastFCAST or \
             type(ast.value) == CoastGNAST):
-            self.generate_fn(ast, depth=detph)
+            self.generate_fn(ast, depth=depth, tail=tail)
         elif type(ast) == CoastAssignAST:
             self.generate_assignment(ast, depth=depth)
         elif type(ast) == CoastFNCallAST or \
              type(ast) == CoastOpCallAST:
-            self.generate_call(ast, depth=depth)
+            self.generate_call(ast, depth=depth, tail=tail)
         elif type(ast) == CoastCaseAST:
-            self.generate_case(ast, depth=depth)
+            self.generate_case(ast, depth=depth, tail=tail)
         #elif type(ast) == CoastTypeAST:
         #    self.generate_type(ast, depth=depth)
         else:
             print(str(ast), end='')
 
     def generate(self, depth=0):
+        # really what needs to happen here is that we
+        # collect together all the generated python
+        # and then return it; this way, we can send it
+        # to a REPL or a file, or to the moon if we so
+        # choose.
         for ast in self.asts:
             self.generate_dispatch(ast, depth)
