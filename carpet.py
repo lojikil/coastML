@@ -1295,7 +1295,10 @@ class CarpetPython:
             self.generate_assignment(ast, depth=depth)
         elif type(ast) == CoastFNCallAST or \
              type(ast) == CoastOpCallAST:
-            self.generate_call(ast, depth=depth, tail=tail)
+            if depth == 0:
+                self.generate_call(ast, depth=depth)
+            else:
+                self.generate_call(ast, depth=depth, tail=tail)
         elif type(ast) == CoastCaseAST:
             self.generate_case(ast, depth=depth, tail=tail)
         #elif type(ast) == CoastTypeAST:
@@ -1310,4 +1313,4 @@ class CarpetPython:
         # to a REPL or a file, or to the moon if we so
         # choose.
         for ast in self.asts:
-            self.generate_dispatch(ast, depth)
+            self.generate_dispatch(ast, depth, tail=True)
