@@ -1266,7 +1266,7 @@ class CarpetPython:
         ctr = 0
         if case.initial_condition is not None and \
            (type(case.initial_condition) is CoastFNCallAST or \
-            type(case.intiial_condition) is CoastOpCallAST):
+            type(case.initial_condition) is CoastOpCallAST):
             # we need to generate a holder variable here, and
             # use that in all of our test cases...
             # we also need to figure out when to bind in case
@@ -1302,7 +1302,7 @@ class CarpetPython:
                     self.generate_dispatch(then, depth=depth+1, tail=tail)
                     ctr += 1
         elif case.initial_condition is not None:
-            resv = self.initial_condition.identvalue
+            resv = case.initial_condition.identvalue
             for cnd in case.conditions:
                 test = cnd[0]
                 then = cnd[1]
@@ -1326,7 +1326,7 @@ class CarpetPython:
                     print('{0} == '.format(resv), end='')
                     self.generate_dispatch(test, depth=0, tail=False)
                     print(':')
-                    self.generate_dispatch(then, depth=depth+1, tail=tail)
+                    self.generate_block(then, depth=depth+1, tail=tail)
                     ctr += 1
         else:
             # we're here, so we have no initial condition, but
@@ -1395,6 +1395,8 @@ class CarpetPython:
                 self.generate_call(ast, depth=depth, tail=tail)
         elif type(ast) == CoastCaseAST:
             self.generate_case(ast, depth=depth, tail=tail)
+        elif type(ast) == CoastBlockAST:
+            self.generate_block(ast, depth=depth+1, tail=tail)
         #elif type(ast) == CoastTypeAST:
         #    self.generate_type(ast, depth=depth)
         else:
