@@ -1199,6 +1199,7 @@ class CarpetPython:
         self.src = src
         self.asts = []
         self.indent = indent
+        self.res_ctr = 0
         if fh is None:
             self.fh = io.StringIO("")
         else:
@@ -1208,6 +1209,7 @@ class CarpetPython:
         self.fns = {}
         self.vals = {}
         self.asts = []
+        self.res_ctr = 0
         parser = CoastalParser(self.src)
         self.asts = parser.parse()
         for ast in self.asts:
@@ -1259,6 +1261,97 @@ class CarpetPython:
                 self.generate_dispatch(b, depth=depth+1)
             print("")
             o += 1
+
+    def generate_case(self, case, depth=0, tail=False):
+        ctr = 0
+        if case.initial_condition is not None and \
+           (type(case.initial_condition) is CoastFNCallAST or \
+            type(case.intiial_condition) is CoastOpCallAST):
+            # we need to generate a holder variable here, and
+            # use that in all of our test cases...
+            # we also need to figure out when to bind in case
+            # clauses...
+            resv = "res" + str(self.res_ctr)
+            self.res_ctr += 1
+            self.generate_indent(depth)
+            print("{0} = ".format(resv), end='')
+            self.generate_call(case.initial_condition, depth=0, tail=False)
+            for cnd in case.conditions:
+                test = cnd[0]
+                then = cnd[1]
+                if type(test) is CoastIdentAST and test.identvalue == "_":
+                    self.generate_indent(depth)
+                    print("else:")
+                    self.generate_block(then, depth=depth+1, tail=tail)
+                elif type(test) is CoastFNCallAST or \
+                     type(test) is CoastOpCallAST:
+                    # this is actually tricky, because we should be checking
+                    # for bindings here, as well as for type constructors and
+                    # doing destructuring bind from there... for now, we can
+                    # just run things really
+                    pass
+                else:
+                    self.generate_indent(depth)
+                    if ctr > 0:
+                        print('elif ', end='')
+                    else:
+                        print('if ', end='')
+                    print('{0} == '.format(resv), end='')
+                    self.generate_dispatch(test, depth=0, tail=False)
+                    print(':')
+                    self.generate_dispatch(then, depth=depth+1, tail=tail)
+                    ctr += 1
+        elif case.initial_condition is not None:
+            resv = self.initial_condition.identvalue
+            for cnd in case.conditions:
+                test = cnd[0]
+                then = cnd[1]
+                if type(test) is CoastIdentAST and test.identvalue == "_":
+                    self.generate_indent(depth)
+                    print("else:")
+                    self.generate_block(then, depth=depth+1, tail=tail)
+                elif type(test) is CoastFNCallAST or \
+                     type(test) is CoastOpCallAST:
+                    # this is actually tricky, because we should be checking
+                    # for bindings here, as well as for type constructors and
+                    # doing destructuring bind from there... for now, we can
+                    # just run things really
+                    pass
+                else:
+                    self.generate_indent(depth)
+                    if ctr > 0:
+                        print('elif ', end='')
+                    else:
+                        print('if ', end='')
+                    print('{0} == '.format(resv), end='')
+                    self.generate_dispatch(test, depth=0, tail=False)
+                    print(':')
+                    self.generate_dispatch(then, depth=depth+1, tail=tail)
+                    ctr += 1
+        else:
+            # we're here, so we have no initial condition, but
+            # we do have a bunch of test cases we need to generate
+            # this is for when `case` is acting like `cond`
+            for clause in self.conditions:
+                test = clause[0]
+                then = clause[1]
+
+                if type(test) is CoastIdentAST and test.identvalue == "_":
+                    self.generate_indent(depth)
+                    print("else:")
+                elif ctr > 0:
+                    self.generate_indent(depth)
+                    print("elif ", end="")
+                    self.generate_call(test, depth=0, tail=False)
+                    print(":")
+                else:
+                    self.generate_indent(depth)
+                    print("if ", end="")
+                    self.generate_call(test, depth=0, tail=False)
+                    print(":")
+
+                self.generate_block(then, depth=depth+1, tail=tail)
+                self.ctr += 1
 
     def generate_call(self, call, depth=0, tail=False):
         if tail:
