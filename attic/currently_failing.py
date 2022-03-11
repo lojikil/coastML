@@ -4,7 +4,10 @@ try:
     c = carpet.CoastalParser("1 + 2 + 3;")
     c.load()
     f = c.sub_parse()
-    print("single digit numerals are working")
+    if f.to_coast() == "1 + 2 + 3":
+        print("single digit numerals are working")
+    else:
+        raise Exception("single digit numerals are still failing")
 except Exception as e:
     print("single digit numerals are still failing:", e)
 
