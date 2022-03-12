@@ -20,7 +20,7 @@ src1="""foo = fn x y {
         | (x < y) { print "x less than y"; }
         | (x > y) { print "x greater than y"; }
         | _ { print "x equal to y"; }
-    esac;
+    esac
 }
 foo 10 20;
 foo 20 20;

@@ -1293,7 +1293,14 @@ class CarpetPython:
                     # for bindings here, as well as for type constructors and
                     # doing destructuring bind from there... for now, we can
                     # just run things really
-                    pass
+                    self.generate_indent(depth)
+                    if ctr > 0:
+                        print('elif ', end='')
+                    else:
+                        print('if ', end='')
+                    self.generate_call(test, depth=1, tail=False)
+                    print(':')
+                    self.generate_block(then, depth=depth+1, tail=tail)
                 else:
                     self.generate_indent(depth)
                     if ctr > 0:
@@ -1320,7 +1327,14 @@ class CarpetPython:
                     # for bindings here, as well as for type constructors and
                     # doing destructuring bind from there... for now, we can
                     # just run things really
-                    pass
+                    self.generate_indent(depth)
+                    if ctr > 0:
+                        print('elif ', end='')
+                    else:
+                        print('if ', end='')
+                    self.generate_call(test, depth=1, tail=False)
+                    print(':')
+                    self.generate_block(then, depth=depth+1, tail=tail)
                 else:
                     self.generate_indent(depth)
                     if ctr > 0:
