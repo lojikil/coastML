@@ -1067,6 +1067,7 @@ class CoastalParser:
                 conditions.append([c, b])
             elif type(self.lexemes[self.current_offset]) == TokenKeyword and \
                  self.lexemes[self.current_offset].lexeme == "esac":
+                self.current_offset += 1
                 break
             else:
                 raise CoastParseError("incorrectly formatted `case` form",
@@ -1143,10 +1144,13 @@ class CoastalParser:
         elif type(self.lexemes[self.current_offset]) == TokenCallStart:
             return self.parse_call(paren=True)
         else:
-            print(self.lexemes[self.current_offset])
-            raise CoastalParseError("Incorrect top-level form", self.lexemes[self.current_offset].line)
+            o = self.lexemes[self.current_offset]
+            l = self.lexemes[self.current_offset].line
+            raise CoastalParseError("Incorrect top-level form {0}".format(str(type(o))), l)
 
     def load(self):
+        self.lexemes = []
+        self.current_offset = 0
         lexer = Lex(self.src)
         lexeme = lexer.next()
         while not isinstance(lexeme, TokenEOF):
@@ -1332,7 +1336,7 @@ class CarpetPython:
             # we're here, so we have no initial condition, but
             # we do have a bunch of test cases we need to generate
             # this is for when `case` is acting like `cond`
-            for clause in self.conditions:
+            for clause in case.conditions:
                 test = clause[0]
                 then = clause[1]
 
@@ -1351,7 +1355,7 @@ class CarpetPython:
                     print(":")
 
                 self.generate_block(then, depth=depth+1, tail=tail)
-                self.ctr += 1
+                ctr += 1
 
     def generate_call(self, call, depth=0, tail=False):
         if tail:
