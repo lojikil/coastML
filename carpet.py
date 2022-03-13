@@ -461,7 +461,7 @@ class Lex:
         self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-])+")
         self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>-])+")
         self.operators = re.compile("^([+=!@$%^&*|?<>-])+$")
-        self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod)$")
+        self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod|is|box)$")
         self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit)$")
         self.bools = re.compile("^(true|false)$")
 
@@ -856,6 +856,24 @@ class CoastIdentAST(CoastAST):
     def __str__(self):
         return self.to_coast()
 
+# I'm on the fence as to where to put some of the ideas I have
+# for example, I'd like to have lambda lifting/closure conversion
+# in some sort of central place, but not tied too tightly to
+# a specific implementation. Although thinking about it,
+# perhaps lambda lifting is generic and closure conversion is
+# specific. My current thinking is that these sorts of generic
+# source to source transformations should go in the parser, and
+# it should be able to generate new ASTs/coastML
+#
+# * We can have the non-updating version `lift_lambda` which returns an AST
+# * The destructive version `lift_lambda!` which updates current AST...
+# * Then, we can easily lift all lambdas and return source...
+#
+# This can be used for a few different transforms as well, and applied
+# only when end users request it or under certain circumstances; for example,
+# in Python we can't generate `lambda` for all things that are functions in
+# coastML
+
 class CoastalParseError(Exception):
     def __init__(self, error_message, line):
         self.error_message = error_message
@@ -1134,6 +1152,9 @@ class CoastalParser:
                 return self.parse_fc()
             elif cur_lex.lexeme == "type":
                 return self.parse_type()
+            elif cur_lex.lexeme == "box":
+                # this is basically just a function call
+                return self.parse_box()
         elif type(self.lexemes[self.current_offset]) == TokenArrayStart:
             # function call? like `[1 2 3] someOp [4 5 6]` but not
             # likely
