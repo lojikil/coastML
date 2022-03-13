@@ -58,7 +58,7 @@ class TokenCut(Token):
         return "TokenCut()"
 
     def __str__(self):
-        return self.lexeme
+        return "$("
 
 # TokenUnit 2 
 
@@ -71,7 +71,7 @@ class TokenUnit(Token):
         return "TokenUnit()"
 
     def __str__(self):
-        return self.lexeme
+        return "()"
 
 
 # TokenIdent 3
@@ -99,7 +99,7 @@ class TokenCallStart(Token):
         return "TokenCallStart()"
 
     def __str__(self):
-        return self.lexeme
+        return "("
 
 # TokenCallEnd 2
 
@@ -112,7 +112,7 @@ class TokenCallEnd(Token):
         return "TokenCallEnd()"
 
     def __str__(self):
-        return self.lexeme
+        return ")"
 
 # TokenArrayStart 2
 
@@ -125,7 +125,7 @@ class TokenArrayStart(Token):
         return "TokenArrayStart()"
 
     def __str__(self):
-        return self.lexeme
+        return "["
 
 # TokenArrayEnd 2
 
@@ -138,7 +138,7 @@ class TokenArrayEnd(Token):
         return "TokenArrayEnd()"
 
     def __str__(self):
-        return self.lexeme
+        return "]"
 
 # TokenBlockStart 2
 
@@ -151,7 +151,7 @@ class TokenBlockStart(Token):
         return "TokenBlockStart()"
 
     def __str__(self):
-        return self.lexeme
+        return "{"
 
 # TokenBlockEnd 2
 
@@ -164,7 +164,7 @@ class TokenBlockEnd(Token):
         return "TokenBlockEnd()"
 
     def __str__(self):
-        return self.lexeme
+        return "}"
 
 # TokenComma 2
 
@@ -177,7 +177,7 @@ class TokenComma(Token):
         return "TokenComma()"
 
     def __str__(self):
-        return self.lexeme
+        return ","
 
 # TokenSemiColon 2
 
@@ -190,7 +190,7 @@ class TokenSemiColon(Token):
         return "TokenSemiColon()"
 
     def __str__(self):
-        return self.lexeme
+        return ";"
 
 # TokenSet 2
 
@@ -203,7 +203,7 @@ class TokenSet(Token):
         return "TokenSet()"
 
     def __str__(self):
-        return self.lexeme
+        return "="
 
 # TokenModSep 2
 
@@ -216,7 +216,7 @@ class TokenModSep(Token):
         return "TokenModSep()"
 
     def __str__(self):
-        return self.lexeme
+        return "::"
 
 # TokenColon 2
 
@@ -229,7 +229,7 @@ class TokenColon(Token):
         return "TokenColon()"
 
     def __str__(self):
-        return self.lexeme
+        return ":"
 
 # TokenError 3
 
@@ -1099,6 +1099,8 @@ class CoastalParser:
         pass
 
     def sub_parse(self):
+        if self.current_offset >= len(self.lexemes):
+            raise CoastalParseError("End of file", self.lexemes[-1].line)
         if type(self.lexemes[self.current_offset]) == TokenComment:
             self.current_offset += 1
             return self.sub_parse()
