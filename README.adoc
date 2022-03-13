@@ -75,3 +75,37 @@ There are only a handful of forms in coastML:
 ** This means that you cannot have two operators in a form that are of different precedence without parentheses
 ** for example: `1 + 2 + 3` is fine, but `1 + 2 * 3` requires parentheses: `1 + (2 * 3)`
 ** function calls work similarly: `print_endline (->string foo)`
+
+== Current Usage
+
+The top-level interfaces that most people would be interested in are:
+
+. `carpet.Lex`, which can be used to iteratively tokenize all source code
+. `carpet.CoastalParser`, which returns AST objects and
+. `carpet.CarpetPython`, which actually generates Python code
+
+[source,python]
+----
+import carpet
+src = """case x
+| 10 { print "x is 10" }
+| 11 { print "x is 11" }
+| (x > y) { print "x is greater than y" }
+| _ { print "none of the above" }
+esac"""
+ll = carpet.Lex(src)
+for l in ll: # <1>
+    somefn(l)
+
+coastparser = carpet.CoastalParser(src)
+coastparser.load() # <2>
+srccaseast = coastparser.sub_parse() # <3>
+
+carpy = carpet.CarpetPython(src)
+carpy.load()
+carpy.generate() # <4>
+----
+<1> The lexical analyzer also includes a `next` method, you needn't use it via iterators
+<2> Both the parser and the python generator can be reset with their respective `load` methods
+<3> We use `sub_parse` here, but there is a `parse` method to return *all* ASTs
+<4> This currently just prints to screen, but I'll refactor it to generate a string
