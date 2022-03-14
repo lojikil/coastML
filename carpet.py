@@ -1114,8 +1114,22 @@ class CoastalParser:
         pass
 
     def parse_type(self):
-        pass
-
+        typename = None
+        constructors = []
+        if type(self.lexemes[self.current_offset]) != TokenTag:
+            raise CoastalParseError("type forms *must* be followed by a Tag",
+                                    self.lexemes[self.current_offset].line)
+        typename = CoastIdentAST(type(self.lexemes[self.current_offset]),
+                                 self.lexemes[self.current_offset].lexeme)
+        # so here, we need to read if we have parameterized types, and then
+        # the individual constructors:
+        #
+        # type TAG ("[" TYPE+ "]") (| TAG ((name ":") TYPE)*)+ epyt
+        #
+        # so, in the spirit of minimalism, I am wondering if I even want the
+        # `|` there; it makes it easier to parse that way, but I could use
+        # `;` at the end of the constructor for the same reason... I think the
+        # visual start is better, but it is tempting to experiment with...#
     def sub_parse(self):
         if self.current_offset >= len(self.lexemes):
             raise CoastalParseError("End of file", self.lexemes[-1].line)
