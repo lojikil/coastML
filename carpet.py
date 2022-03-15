@@ -1130,6 +1130,43 @@ class CoastalParser:
         # `|` there; it makes it easier to parse that way, but I could use
         # `;` at the end of the constructor for the same reason... I think the
         # visual start is better, but it is tempting to experiment with...#
+
+        self.current_offset += 1
+        if type(self.lexemes[self.current_offset]) == TokenArrayStart:
+            types = self.parse_array_literal()
+        else:
+            types = None
+
+        # ok, so we're past the name, and we're past any potential types, now
+        # we just need to parse the various constructors and types. I do
+        # wonder if I want to bother with names, but I feel like numbered
+        # accessors would get messy fast (although we obviously should allow
+        # them for people who want to use ADTs-as-tuples, just like named
+        # accessors should be allowed for people who wish to use
+        # ADTs-as-records
+
+        while self.current_offset < len(self.lexemes):
+            if type(self.lexemes[self.current_offset]) == TokenOperator and \
+               self.lexemes[self.current_offset].lexeme == "|":
+                self.current_offset += 1
+                if type(self.lexemes[self.current_offset]) == TokenTag:
+                    constructortag = self.parse_callable()
+                    self.current_offset += 1
+                else:
+                    raise CoastParseError("constructors *must* be tags in `type` forms",
+                                          self.lexemes[self.current_offset].line)
+                # here, we basically just read whatever until we match a `|` or a `epyt`
+                connstructors.append([c, b])
+            elif type(self.lexemes[self.current_offset]) == TokenKeyword and \
+                 self.lexemes[self.current_offset].lexeme == "epyt":
+                self.current_offset += 1
+                break
+            else:
+                raise CoastParseError("incorrectly formatted `type` form",
+                                      self.lexemes[self.current_offset].line)
+
+        return CoastTypeAST(typename, constructors, types=types)
+
     def sub_parse(self):
         if self.current_offset >= len(self.lexemes):
             raise CoastalParseError("End of file", self.lexemes[-1].line)
