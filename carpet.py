@@ -856,6 +856,32 @@ class CoastIdentAST(CoastAST):
     def __str__(self):
         return self.to_coast()
 
+class CoastTypeAST(CoastAST):
+    def __init__(self, basetype, typeparameters):
+        self.basetype = basetype
+        self.typeparameters = typeparameters
+
+    def to_coast(self, depth=0):
+        if self.typeparameters:
+            tp = " ".join([x.to_coast() for x in self.typeparameters])
+            return "{0}[{1}]".format(self.basetype, tp)
+        return "{0}".format(self.basetype)
+
+    def __str__(self):
+        return self.to_coast()
+
+class CoastTypeDefAST(CoastAST):
+    def __init__(self, typename, constructors, types=None):
+        self.typename = typename
+        self.constructors = constructors
+        self.types = types
+
+    def to_coast(self, depth=0):
+        return "type {0}".format(self.typename)
+
+    def __str__(self):
+        return self.to_coast()
+
 # I'm on the fence as to where to put some of the ideas I have
 # for example, I'd like to have lambda lifting/closure conversion
 # in some sort of central place, but not tied too tightly to
@@ -1113,6 +1139,14 @@ class CoastalParser:
     def parse_gn(self):
         pass
 
+    def parse_cardinal_type(self):
+        # parse built-in types for Carpet...
+        # there are a few different things to do here
+        # and I do suspect what we'll do is if we're called
+        # from something like an `is`, we'll parse Tags thusly
+        # as well...
+        pass
+
     def parse_type(self):
         typename = None
         constructors = []
@@ -1177,21 +1211,28 @@ class CoastalParser:
                 self.current_offset += 1
                 if type(self.lexemes[self.current_offset]) == TokenTag:
                     constructortag = self.parse_callable()
-                    self.current_offset += 1
                 else:
-                    raise CoastParseError("constructors *must* be tags in `type` forms",
-                                          self.lexemes[self.current_offset].line)
+                    raise CoastalParseError("constructors *must* be tags in `type` forms",
+                                            self.lexemes[self.current_offset].line)
+
+                if type(self.lexemes[self.current_offset]) != TokenKeyword or \
+                   self.lexemes[self.current_offset].lexeme != "is":
+                    print(constructortag, self.lexemes[self.current_offset])
+                    raise CoastalParseError("constructor tags must be followed by `is`",
+                                            self.lexemes[self.current_offset].line)
+                self.current_offset += 1
+                constructortypes = self.parse_array_literal()
                 # here, we basically just read whatever until we match a `|` or a `epyt`
-                connstructors.append([c, b])
+                constructors.append([constructortag, constructortypes])
             elif type(self.lexemes[self.current_offset]) == TokenKeyword and \
                  self.lexemes[self.current_offset].lexeme == "epyt":
                 self.current_offset += 1
                 break
             else:
-                raise CoastParseError("incorrectly formatted `type` form",
-                                      self.lexemes[self.current_offset].line)
+                raise CoastalParseError("incorrectly formatted `type` form",
+                                        self.lexemes[self.current_offset].line)
 
-        return CoastTypeAST(typename, constructors, types=types)
+        return CoastTypeDefAST(typename, constructors, types=types)
 
     def sub_parse(self):
         if self.current_offset >= len(self.lexemes):
@@ -1232,6 +1273,8 @@ class CoastalParser:
             elif cur_lex.lexeme == "box":
                 # this is basically just a function call
                 return self.parse_box()
+        elif type(self.lexemes[self.current_offset]) == TokenType:
+            return self.parse_cardinal_type()
         elif type(self.lexemes[self.current_offset]) == TokenArrayStart:
             # function call? like `[1 2 3] someOp [4 5 6]` but not
             # likely
@@ -1515,7 +1558,7 @@ class CarpetPython:
             self.generate_case(ast, depth=depth, tail=tail)
         elif type(ast) == CoastBlockAST:
             self.generate_block(ast, depth=depth+1, tail=tail)
-        #elif type(ast) == CoastTypeAST:
+        #elif type(ast) == CoastTypeDefAST:
         #    self.generate_type(ast, depth=depth)
         else:
             print(str(ast), end='')
