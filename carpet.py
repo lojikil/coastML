@@ -1144,6 +1144,32 @@ class CoastalParser:
         # them for people who want to use ADTs-as-tuples, just like named
         # accessors should be allowed for people who wish to use
         # ADTs-as-records
+        #
+        # Interesting... I was talking with @hex0punk today, and I realized
+        # another interesting style to try:
+        #
+        # [source]
+        # ----
+        # type Foo[A B]
+        # | Result is [A]
+        # | Error is [B]
+        # epyt
+        # ----
+        #
+        # it matches the style of other declarations more closely, and is
+        # pretty nice to parse...
+        #
+        # [source]
+        # ----
+        # type Daffodil
+        # | Assoc is [list[tuple[string Daffodil]]]
+        # | Array is [list[Daffodil]]
+        # | Int is [int]
+        # | Float is [float]
+        # | Null
+        # | Bool is [bool]
+        # | String is [string]
+        # epyt
 
         while self.current_offset < len(self.lexemes):
             if type(self.lexemes[self.current_offset]) == TokenOperator and \
