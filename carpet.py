@@ -836,6 +836,9 @@ class CoastLiteralAST(CoastAST):
         # about a binary integer, since
         # Golang doesn't have native binary
         # integers...
+        if type(self.litvalue) is list:
+            vs = [x.to_coast(depth=depth+1) for x in self.litvalue]
+            return "[" + " ".join(vs) + "]"
         return self.litvalue
 
     def __str__(self):
@@ -863,7 +866,7 @@ class CoastTypeAST(CoastAST):
 
     def to_coast(self, depth=0):
         if self.typeparameters:
-            tp = " ".join([x.to_coast() for x in self.typeparameters])
+            tp = " ".join([x.to_coast() for x in self.typeparameters.litvalue])
             return "{0}[{1}]".format(self.basetype, tp)
         return "{0}".format(self.basetype)
 
@@ -968,6 +971,7 @@ class CoastalParser:
         res = []
         while self.current_offset < len(self.lexemes):
             if isinstance(self.lexemes[self.current_offset], TokenArrayEnd):
+                self.current_offset += 1
                 break
             elif self.simple_value(self.lexemes[self.current_offset]):
                 res.append(self.parse_simple_value())
@@ -1145,7 +1149,36 @@ class CoastalParser:
         # and I do suspect what we'll do is if we're called
         # from something like an `is`, we'll parse Tags thusly
         # as well...
-        pass
+        #
+        # NOTE probably need to add things like "uint64" and such here
+        # too.
+        basictypes = ["int", "char", "float", "number", "string", "unit"]
+        compltypes = ["list", "array", "deque", "function"]
+        if type(self.lexemes[self.current_offset]) == TokenType and \
+           self.lexemes[self.current_offset].lexeme in basictypes:
+            self.current_offset += 1
+            return CoastTypeAST(self.lexemes[self.current_offset - 1].lexeme,
+                                None)
+        elif type(self.lexemes[self.current_offset]) == TokenType and \
+             self.lexemes[self.current_offset].lexeme in compltypes:
+            if type(self.lexemes[self.current_offset + 1]) != TokenArrayStart:
+                raise CoastalParseError("complex types must be followed by an array",
+                                        self.lexemes[self.current_offset].line)
+            basecompl = self.lexemes[self.current_offset].lexeme
+            self.current_offset += 1
+            parameter = self.parse_array_literal()
+            return CoastTypeAST(basecompl, parameter)
+        elif type(self.lexemes[self.current_offset]) == TokenTag:
+            # attempt to parse a complex User type here
+            basecompl = self.lexemes[self.current_offset].lexeme
+            if type(self.lexemes[self.current_offset + 1]) == TokenArrayStart:
+                parameter = self.parse_array_literal()
+            else:
+                parameter = None
+            return CoastTypeAST(basecompl, parameter)
+        else:
+            raise CoastalParseError("types must be built-in or a Tag",
+                                    self.lexemes[self.current_offset].line)
 
     def parse_type(self):
         typename = None
@@ -1215,13 +1248,19 @@ class CoastalParser:
                     raise CoastalParseError("constructors *must* be tags in `type` forms",
                                             self.lexemes[self.current_offset].line)
 
-                if type(self.lexemes[self.current_offset]) != TokenKeyword or \
-                   self.lexemes[self.current_offset].lexeme != "is":
+                if type(self.lexemes[self.current_offset]) == TokenKeyword and \
+                   self.lexemes[self.current_offset].lexeme == "is":
+                    self.current_offset += 1
+                    constructortypes = self.parse_array_literal()
+                elif (type(self.lexemes[self.current_offset]) == TokenOperator and \
+                      self.lexemes[self.current_offset].lexeme == "|") or \
+                     (type(self.lexemes[self.current_offset]) == TokenKeyword and \
+                      self.lexemes[self.current_offset].lexeme == "epyt"):
+                    constructortypes = []
+                else:
                     print(constructortag, self.lexemes[self.current_offset])
                     raise CoastalParseError("constructor tags must be followed by `is`",
                                             self.lexemes[self.current_offset].line)
-                self.current_offset += 1
-                constructortypes = self.parse_array_literal()
                 # here, we basically just read whatever until we match a `|` or a `epyt`
                 constructors.append([constructortag, constructortypes])
             elif type(self.lexemes[self.current_offset]) == TokenKeyword and \
@@ -1229,6 +1268,7 @@ class CoastalParser:
                 self.current_offset += 1
                 break
             else:
+                print(self.current_offset)
                 raise CoastalParseError("incorrectly formatted `type` form",
                                         self.lexemes[self.current_offset].line)
 
