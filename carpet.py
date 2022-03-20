@@ -880,7 +880,27 @@ class CoastTypeDefAST(CoastAST):
         self.types = types
 
     def to_coast(self, depth=0):
-        return "type {0}".format(self.typename)
+        header = "type {0}".format(self.typename)
+
+        if self.types is not None:
+            types = " ".join([x.to_coast for x in self.types])
+            header = "{0} [{1}]".format(header, types)
+
+        ctors = []
+        for ctorn, ctorp in self.constructors:
+            if type(ctorp) is CoastLiteralAST and len(ctorp.litvalue) > 0:
+                params = " ".join([x.to_coast() for x in ctorp.litvalue])
+                ctors.append("| {0} is [{1}]".format(ctorn.to_coast(),
+                                                     params))
+            elif type(ctorp) is list and len(ctorp) > 0:
+                print("# here in list for", ctorn)
+                params = " ".join([x.to_coast() for x in ctorp])
+                ctors.append("| {0} is [{1}]".format(ctorn.to_coast(),
+                                                     params))
+            else:
+                ctors.append("| {0}".format(ctorn.to_coast()))
+
+        return "{0}\n{1}\nepyt".format(header, "\n".join(ctors))
 
     def __str__(self):
         return self.to_coast()
