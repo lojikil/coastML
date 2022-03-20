@@ -1257,6 +1257,7 @@ class CoastalParser:
         # | Bool is [bool]
         # | String is [string]
         # epyt
+        # ----
 
         while self.current_offset < len(self.lexemes):
             if type(self.lexemes[self.current_offset]) == TokenOperator and \
@@ -1305,6 +1306,9 @@ class CoastalParser:
             return self.sub_parse()
         elif type(self.lexemes[self.current_offset]) == TokenIdent:
             # could be a function call or an assignment
+            # XXX: need to figure out how to handle just returning a
+            # variable's contents here as well; not all instances will
+            # be a function call or assignment; it could just be a ref
             if self.is_assignment(self.lexemes[self.current_offset + 1]):
                 return self.parse_assignment()
             else:
