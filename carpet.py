@@ -1469,6 +1469,57 @@ class CarpetPython:
             print("")
             o += 1
 
+    def generate_type(self, t, depth=0, tail=False):
+        # this is going to be interesting; basically, we
+        # need to generate the entire class hierarchy of
+        # a type, starting with the basetype (which is the
+        # name) and iterating through to generating each
+        # class' `__init__` and so on.
+        #
+        # NOTE also, eventually we'll have named fields
+        # which we'll have to take care of as well
+        #
+        # NOTE we *also* now need to add constructors to
+        # `case` forms
+        base = t.typename
+        print("class {0}:".format(base))
+        self.generate_indent(depth + 1)
+        print("pass")
+        for ctor in t.constructors:
+            print("@dataclass\nclass {0}_{1}({0}):".format(base, ctor[0]))
+            ctorp = ctor[1]
+            if type(ctorp) is CoastLiteralAST and len(ctorp.litvalue) > 0:
+                m = 0
+                for p in ctorp.litvalue:
+                    self.generate_indent(depth + 1)
+                    print("m_{0} : ".format(m), end='')
+                    m += 1
+                    self.generate_cardinal_type(p, depth=0)
+                    print("")
+
+            elif type(ctorp) is list and len(ctorp) > 0:
+                print("# here in list for", ctorn)
+                params = " ".join([x.to_coast() for x in ctorp])
+                ctors.append("| {0} is [{1}]".format(ctorn.to_coast(),
+                                                     params))
+            else:
+                self.generate_indent(depth + 1)
+                print("pass")
+
+    def generate_cardinal_type(self, t, depth=0, tail=False):
+        # for right now, we're not attempting to generate
+        # parameterized types in Python3, but that should
+        # change
+        if t.basetype == "string":
+            print("str", end='')
+        elif t.basetype == "num":
+            # NOTE: must remember to include `from numbers import Number`
+            print("Number", end='')
+        elif t.basetype == "array":
+            print("list", end='')
+        else:
+            print(t.basetype, end='')
+
     def generate_case(self, case, depth=0, tail=False):
         ctr = 0
         if case.initial_condition is not None and \
@@ -1618,8 +1669,8 @@ class CarpetPython:
             self.generate_case(ast, depth=depth, tail=tail)
         elif type(ast) == CoastBlockAST:
             self.generate_block(ast, depth=depth+1, tail=tail)
-        #elif type(ast) == CoastTypeDefAST:
-        #    self.generate_type(ast, depth=depth)
+        elif type(ast) == CoastTypeDefAST:
+            self.generate_type(ast, depth=depth)
         else:
             print(str(ast), end='')
 
