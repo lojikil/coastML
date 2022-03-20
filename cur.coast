@@ -54,8 +54,8 @@ foo$ 1;
 
 # algebraic data types are nice, let's do those:
 type Foo[A B]
-| Result A
-| Error B
+| Result is [A]
+| Error is [B]
 epyt
 
 bar = fc x
