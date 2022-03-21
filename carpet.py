@@ -1314,8 +1314,14 @@ class CoastalParser:
             # function call or just literal...
             return self.parse_call()
         elif type(self.lexemes[self.current_offset]) == TokenCallStart:
-            self.current_offset += 1
-            return self.parse_call(paren=True)
+            # originally this was breaking for input like `(10 * 3) + 1;`,
+            # so this is closer, we end up with a parse tree that has
+            # both the paren and the rest of the operation, but it's
+            # being detected as a `fn` call:
+            # . `fn.op` == `(10 * 3)` and
+            # . `fn.data` == `[+ 1]`
+            # which is also wrong
+            return self.parse_call()
         elif type(self.lexemes[self.current_offset]) == TokenKeyword:
             # could be a function call (like anonymous lambda application)
             # or another form...
