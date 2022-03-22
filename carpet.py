@@ -801,6 +801,10 @@ class CoastFNCallAST(CoastAST):
         template = "{0} {1};"
         if depth > 0:
             template = "({0} {1})"
+        elif len(data) == 0 and depth == 0:
+            return "({0});".format(fn)
+        elif len(data) == 0:
+            return "({0})".format(fn)
         return template.format(fn, data)
 
     def __str__(self):
@@ -1049,23 +1053,10 @@ class CoastalParser:
                 res = self.sub_parse()
                 subcaptures.append(res)
 
-        if len(subcaptures) == 1:
+        if len(subcaptures) == 1 and not paren:
             return subcaptures[0]
-        elif isinstance(subcaptures[0], CoastLiteralAST):
-            # parse an operator call here, use shunting yard
-            op = subcaptures[1]
-            args = []
-            for i in range(0, len(subcaptures)):
-                if i % 2 == 0:
-                    args.append(subcaptures[i])
-                elif subcaptures[i].identvalue == op.identvalue:
-                    pass
-                else:
-                    raise CoastalParseError("Attempted to use mis-matched operators", subcaptures[i].line)
-            return CoastOpCallAST(op, args)
-        elif hasattr(subcaptures[0], "identtype") and \
+        elif len(subcaptures) > 1 and \
              hasattr(subcaptures[1], "identtype") and \
-             subcaptures[0].identtype == TokenIdent and \
              subcaptures[1].identtype == TokenOperator:
             # this should probably just be an ident check
             # that's the only _real_ ambiguity here...
