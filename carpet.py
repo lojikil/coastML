@@ -793,9 +793,12 @@ class CoastFNCallAST(CoastAST):
         self.data = data
 
     def to_coast(self, depth=0):
-        fn = str(self.fn)
+        if type(self.fn) is not CoastIdentAST:
+            fn = self.fn.to_coast(depth=1)
+        else:
+            fn = str(self.fn)
         data = " ".join([x.to_coast(depth=depth + 1) for x in self.data])
-        template = "{0} {1}"
+        template = "{0} {1};"
         if depth > 0:
             template = "({0} {1})"
         return template.format(fn, data)
