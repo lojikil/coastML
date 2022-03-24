@@ -1097,6 +1097,7 @@ class CoastalParser:
         ic = None
         conditions = []
         if type(self.lexemes[self.current_offset]) == TokenCallStart:
+            self.current_offset += 1
             ic = self.parse_call(paren=True)
         elif type(self.lexemes[self.current_offset]) == TokenOperator and \
              self.lexemes[self.current_offset].lexeme == "|":
@@ -1523,52 +1524,22 @@ class CarpetPython:
 
     def generate_case(self, case, depth=0, tail=False):
         ctr = 0
-        if case.initial_condition is not None and \
-           (type(case.initial_condition) is CoastFNCallAST or \
-            type(case.initial_condition) is CoastOpCallAST):
-            # we need to generate a holder variable here, and
-            # use that in all of our test cases...
-            # we also need to figure out when to bind in case
-            # clauses...
-            resv = "res" + str(self.res_ctr)
-            self.res_ctr += 1
-            self.generate_indent(depth)
-            print("{0} = ".format(resv), end='')
-            self.generate_call(case.initial_condition, depth=0, tail=False)
-            for cnd in case.conditions:
-                test = cnd[0]
-                then = cnd[1]
-                if type(test) is CoastIdentAST and test.identvalue == "_":
-                    self.generate_indent(depth)
-                    print("else:")
-                    self.generate_block(then, depth=depth+1, tail=tail)
-                elif type(test) is CoastFNCallAST or \
-                     type(test) is CoastOpCallAST:
-                    # this is actually tricky, because we should be checking
-                    # for bindings here, as well as for type constructors and
-                    # doing destructuring bind from there... for now, we can
-                    # just run things really
-                    self.generate_indent(depth)
-                    if ctr > 0:
-                        print('elif ', end='')
-                    else:
-                        print('if ', end='')
-                    self.generate_call(test, depth=1, tail=False)
-                    print(':')
-                    self.generate_block(then, depth=depth+1, tail=tail)
-                else:
-                    self.generate_indent(depth)
-                    if ctr > 0:
-                        print('elif ', end='')
-                    else:
-                        print('if ', end='')
-                    print('{0} == '.format(resv), end='')
-                    self.generate_dispatch(test, depth=0, tail=False)
-                    print(':')
-                    self.generate_dispatch(then, depth=depth+1, tail=tail)
-                    ctr += 1
-        elif case.initial_condition is not None:
-            resv = case.initial_condition.identvalue
+        if case.initial_condition is not None:
+            if (type(case.initial_condition) is CoastFNCallAST or \
+               type(case.initial_condition) is CoastOpCallAST):
+                # we need to generate a holder variable here, and
+                # use that in all of our test cases...
+                # we also need to figure out when to bind in case
+                # clauses...
+                resv = "res" + str(self.res_ctr)
+                self.res_ctr += 1
+                self.generate_indent(depth)
+                print("{0} = ".format(resv), end='')
+                self.generate_call(case.initial_condition, depth=0, tail=False)
+                print("")
+            else:
+                resv = case.initial_condition.identvalue
+
             for cnd in case.conditions:
                 test = cnd[0]
                 then = cnd[1]
