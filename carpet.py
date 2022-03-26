@@ -1522,6 +1522,9 @@ class CarpetPython:
         else:
             print(t.basetype, end='')
 
+    def generate_constructor_case(self, resv, test):
+        pass
+
     def generate_case(self, case, depth=0, tail=False):
         ctr = 0
         if case.initial_condition is not None:
@@ -1543,6 +1546,7 @@ class CarpetPython:
             for cnd in case.conditions:
                 test = cnd[0]
                 then = cnd[1]
+                bindings = None
                 if type(test) is CoastIdentAST and test.identvalue == "_":
                     self.generate_indent(depth)
                     print("else:")
@@ -1558,8 +1562,25 @@ class CarpetPython:
                         print('elif ', end='')
                     else:
                         print('if ', end='')
-                    self.generate_call(test, depth=1, tail=False)
+
+                    # ok, so if we have a type constructor, we want
+                    # to actually generate a `type(...) is ...` check
+                    # and return any bindings we need to set in the
+                    # then block
+                    if type(test) is CoastFNCallAST and \
+                       type(test.fn) is CoastIdentAST and \
+                       type(test.fn.identtype) is TokenNSADT:
+                        bindings = self.generate_contructor_case(resv, test)
+                    else:
+                        self.generate_call(test, depth=1, tail=False)
+
                     print(':')
+
+                    if bindings is not None:
+                        for binding in bindings:
+                            self.generate_indent(depth + 1)
+                            print("{0} = {1}", binding[0], binding[1])
+
                     self.generate_block(then, depth=depth+1, tail=tail)
                 else:
                     self.generate_indent(depth)
