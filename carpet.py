@@ -1522,7 +1522,29 @@ class CarpetPython:
         else:
             print(t.basetype, end='')
 
-    def generate_constructor_case(self, resv, test):
+    def generate_constructor_case(self, resv:str, test:CoastAST) -> list[tuple[str, CoastAST]]:
+        # ok, so we need to:
+        #
+        # . iterate over a `test`
+        # . generate the `type($resv) == TypeName_ConstructorName`
+        # . generate any subconditions based off of accessors & guards
+        # . return a set of bindings that users may want to use...
+        #
+        # it's not _terrible_ really, we just need to actually pay
+        # attention to positions. More interesting to me is how do
+        # we map an accessor to the classes we generate? I've thought about
+        # having to add methods to those to help with it, but that also
+        # seems needlessly expensive. We could carry around or look up
+        # what constructor definitions we have, that would be easier, but
+        # we need to actually add that information in somewhere... This is
+        # made somewhat easier by the fact that I don't actually support
+        # naming Constructor arguments currently, so we know that `_1` actually
+        # needs to be rewritten to `obj.m_1`
+        #
+        # the other aspect to this is that I want to support really simple
+        # guard clauses; like `(Option.Some (_ > 10))`, and here we would
+        # positionally rewrite the `_` to `$1` and then rewrite that to the
+        # correct constructor member
         pass
 
     def generate_case(self, case, depth=0, tail=False):
