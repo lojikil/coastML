@@ -23,3 +23,6 @@ try:
         raise Exception("incorrectly parsed!")
 except Exception as e:
     print("Parenthized at start of call is still failing:", e)
+
+# nested arrays are currently failing...
+arrayofarray = "[[1 2] [3 4]]"

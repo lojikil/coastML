@@ -1545,7 +1545,33 @@ class CarpetPython:
         # guard clauses; like `(Option.Some (_ > 10))`, and here we would
         # positionally rewrite the `_` to `$1` and then rewrite that to the
         # correct constructor member
-        pass
+        clazz_name = test.fn.identval.replace('.', '_')
+        bindings = []
+
+        # so we keep an id here to count off the index of the constructor
+        # member, and then iterate over each piece of data and rewrite the
+        # names in order...
+
+        idx = 0
+
+        for d in test.fn.data:
+            if type(d) == CoastIdentAST and \
+               d.identvalue == "_":
+                idx += 1
+            elif type(d) == CoastIdentAST:
+                # need to generate a binding here
+                # and return it to the callee
+                # this is also interesting because is this an
+                # equality check (like does the value EQUAL the
+                # variable's value) or is it always a binding?
+                idx += 1
+            elif type(d) == CoastLiteralAST:
+                # generate a `$res.m_$idx == ${d.to_coast}` here
+                idx += 1
+            elif type(d) == CoastFNCallAST or type(d) == CoastOpCallAST:
+                idx += 1
+
+        return bindings
 
     def generate_case(self, case, depth=0, tail=False):
         ctr = 0
