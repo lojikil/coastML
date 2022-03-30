@@ -19,6 +19,7 @@ import re
 import string
 import functools
 import io
+from typing import Union
 
 class Token:
     def __repr__(self):
@@ -1522,6 +1523,9 @@ class CarpetPython:
         else:
             print(t.basetype, end='')
 
+    def generate_accessor_string(self, resv:str, accessor:Union[int, str]) -> str:
+        pass
+
     def generate_constructor_case(self, resv:str, test:CoastAST) -> list[tuple[str, CoastAST]]:
         # ok, so we need to:
         #
@@ -1554,6 +1558,8 @@ class CarpetPython:
 
         idx = 0
 
+        print('type({0}) == {1}'.format(resv, clazz_name), end='')
+
         for d in test.fn.data:
             if type(d) == CoastIdentAST and \
                d.identvalue == "_":
@@ -1564,9 +1570,12 @@ class CarpetPython:
                 # this is also interesting because is this an
                 # equality check (like does the value EQUAL the
                 # variable's value) or is it always a binding?
+                bindings.append((d, self.generate_accessor_string(resv, idx)))
                 idx += 1
             elif type(d) == CoastLiteralAST:
                 # generate a `$res.m_$idx == ${d.to_coast}` here
+                print(' and ', end='')
+                print(self.generate_accessor_string(resv, idx), "==", d.to_coast(), end='')
                 idx += 1
             elif type(d) == CoastFNCallAST or type(d) == CoastOpCallAST:
                 idx += 1
