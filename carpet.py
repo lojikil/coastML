@@ -1524,7 +1524,11 @@ class CarpetPython:
             print(t.basetype, end='')
 
     def generate_accessor_string(self, resv:str, accessor:Union[int, str]) -> str:
-        pass
+        if type(accessor) is int:
+            finalaccess = "m_{0}".format(accessor)
+        else:
+            finalaccess = accessor
+        return "{0}.{1}".format(resv, finalaccess)
 
     def generate_constructor_case(self, resv:str, test:CoastAST) -> list[tuple[str, CoastAST]]:
         # ok, so we need to:
@@ -1549,7 +1553,7 @@ class CarpetPython:
         # guard clauses; like `(Option.Some (_ > 10))`, and here we would
         # positionally rewrite the `_` to `$1` and then rewrite that to the
         # correct constructor member
-        clazz_name = test.fn.identval.replace('.', '_')
+        clazz_name = test.fn.identvalue.replace('.', '_')
         bindings = []
 
         # so we keep an id here to count off the index of the constructor
@@ -1560,7 +1564,7 @@ class CarpetPython:
 
         print('type({0}) == {1}'.format(resv, clazz_name), end='')
 
-        for d in test.fn.data:
+        for d in test.data:
             if type(d) == CoastIdentAST and \
                d.identvalue == "_":
                 idx += 1
@@ -1626,8 +1630,8 @@ class CarpetPython:
                     # then block
                     if type(test) is CoastFNCallAST and \
                        type(test.fn) is CoastIdentAST and \
-                       type(test.fn.identtype) is TokenNSADT:
-                        bindings = self.generate_contructor_case(resv, test)
+                       test.fn.identtype is TokenNSADT:
+                        bindings = self.generate_constructor_case(resv, test)
                     else:
                         self.generate_call(test, depth=1, tail=False)
 
