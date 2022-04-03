@@ -1003,6 +1003,11 @@ class CoastalParser:
                 break
             elif self.simple_value(self.lexemes[self.current_offset]):
                 res.append(self.parse_simple_value())
+            elif type(self.lexemes[self.current_offset]) == TokenArrayStart:
+                res.append(self.parse_array_literal())
+            elif type(self.lexemes[self.current_offset]) == TokenCallStart:
+                self.current_offset += 1
+                res.append(self.parse_call(paren=True))
             elif isinstance(self.lexemes[self.current_offset], TokenComma):
                 # commas aren't required, but we parse them if we get
                 # them
