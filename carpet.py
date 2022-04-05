@@ -447,7 +447,7 @@ class Lex:
         self.src = src
         self.offset = offset
         self.line = line
-        self.rest_ident = re.compile("[a-zA-Z0-9_+=!@$%^&*|?:\.<>-]")
+        self.rest_ident = re.compile("[a-zA-Z0-9_+=!@$%^&*|?:\.<>/-]")
         # we have two options here:
         #
         # * make tag/ident strict
@@ -457,11 +457,11 @@ class Lex:
         # note; Python's `re.match` will actually match `tag`
         # and `ns_mod` for the same, albeit a substring of the
         # actual string for the former
-        self.tag = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*")
-        self.ident = re.compile("[a-z_!@$%^&*<>][a-zA-Z0-9_+=!@$%^&*|?<>-]*")
-        self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-])+")
-        self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>-])+")
-        self.operators = re.compile("^([+=!@$%^&*|?<>-])+$")
+        self.tag = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*")
+        self.ident = re.compile("[a-z_!@$%^&*<>][a-zA-Z0-9_+=!@$%^&*|?<>/-]*")
+        self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
+        self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
+        self.operators = re.compile("^([+=!@$%^&*|?<>/-])+$")
         self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod|is|box)$")
         self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit)$")
         self.bools = re.compile("^(true|false)$")
