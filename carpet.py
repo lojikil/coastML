@@ -617,15 +617,28 @@ class Lex:
                 return TokenError("Incorrectly formatted atom/numeral", self.line, self.offset)
         elif self.src[o] in '123456789':
             no = o + 1
-
+            # NOTE this is a fix for allowing _multidigit_ floating
+            # point numbers; originally you could have floats that
+            # began with a single digit, but not with _multiple_ digits
+            # my original tests were too facile! This came up when I was
+            # coding for my own edification and wrote some Julian date
+            # library
+            floatflag = False
             if no >= len(self.src):
                 self.offset = no
                 return TokenInt(self.src[o:no], self.line, self.offset)
             elif self.src[no] in '0123456789':
                 no += 1
-                while no < len(self.src) and self.src[no] in '0123456789':
+                while no < len(self.src) and self.src[no] in '.0123456789':
+                    if self.src[no] == '.' and floatflag:
+                        return TokenError("malformed floating point with two '.' characters", self.line, self.offset)
+                    elif self.src[no] == '.':
+                        floatflag = True
                     no += 1
                 self.offset = no
+
+                if floatflag:
+                    return TokenFloat(self.src[o:no], self.line, self.offset)
                 return TokenInt(self.src[o:no], self.line, self.offset)
             elif self.src[no] == '.':
                 no += 1
