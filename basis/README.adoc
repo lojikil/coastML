@@ -1,0 +1,4 @@
+== Overview
+
+The basis (standard) library for coastML; most of these should be abstracted away by the compiler, but some may be useful as fall backs to things
+that are provided by one target and not another or to have some basic standards across all ecosystems.
