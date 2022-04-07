@@ -975,12 +975,6 @@ class CoastalParser:
                 return True
         return False
 
-    def is_basis_fn(self, fn):
-        return False
-
-    def is_accessor(self, fn):
-        return False
-
     def parse_assignment(self):
         if not self.is_assignment(self.lexemes[self.current_offset + 1]):
             raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
@@ -1456,6 +1450,29 @@ class CarpetPython:
             elif type(ast) == CoastAssignAST:
                 n = ast.name.identvalue
                 self.vals[n] = ast.value
+
+    def is_basis_fn(self, fn):
+        # is this one of the basis functions we know
+        # how to optimize away?
+        return False
+
+    def is_accessor(self, fn):
+        # checks if we have a call to an accessor;
+        # the compiler should take care of if this
+        # accessor is _meaningful_ or not, so here we
+        # just need to know what to dispatch to
+        if fn.identvalue[0] == '_':
+            return True
+        return False
+
+    def is_accessor_variable(self, var):
+        # for case statements and the like, when we
+        # wish to access a member of the current
+        # ADT without referring to the original
+        # itself
+        if var.identvalue[0] == '$':
+            return True
+        return False
 
     def generate_indent(self, cnt):
         for i in range(0, cnt):
