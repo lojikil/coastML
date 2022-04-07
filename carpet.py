@@ -975,6 +975,12 @@ class CoastalParser:
                 return True
         return False
 
+    def is_basis_fn(self, fn):
+        return False
+
+    def is_accessor(self, fn):
+        return False
+
     def parse_assignment(self):
         if not self.is_assignment(self.lexemes[self.current_offset + 1]):
             raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
@@ -1701,7 +1707,13 @@ class CarpetPython:
         if tail:
             print("return ", end='')
 
-        if type(call) == CoastFNCallAST:
+        if type(call) == CoastFNCallAST and \
+           self.is_basis_fn(call.fn):
+            pass
+        elif type(call) == CoastFNCallAST and \
+             self.is_accessor_fn(call.fn):
+            pass
+        elif type(call) == CoastFNCallAST:
             print(str(call.fn) + "(", end='')
             l = len(call.data)
             o = 0
