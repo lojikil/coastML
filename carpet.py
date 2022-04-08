@@ -1454,6 +1454,20 @@ class CarpetPython:
     def is_basis_fn(self, fn):
         # is this one of the basis functions we know
         # how to optimize away?
+        basislib = ["array-length", "array-get", "array-set!", "array-make",
+                    "array-init", "array-make-matrix", "array-append",
+                    "array-concat", "array-concat!", "array-sub",
+                    "array-copy", "array-fill!", "array-blit!",
+                    "array->list", "list->array", "array-iter",
+                    "array-map", "array-iter-index", "array-map'index",
+                    "array-foldl", "array-foldr", "array-sort",
+                    "array-stable-sort", "array-fast-sort", "string-length",
+                    "string-get", "string-make", "string-init",
+                    "string-append", "string-join", "string-contains",
+                    "string-concat", "string-copy", "string->array",
+                    "string-iter", "string-map", "string-iter-index",
+                    "string-map-index", "string-foldl", "string-foldr",
+                    "string-sort", "compare"]
         return False
 
     def is_accessor(self, fn):
