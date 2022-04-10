@@ -1585,6 +1585,9 @@ class CarpetPython:
             finalaccess = accessor
         return "{0}.{1}".format(resv, finalaccess)
 
+    def generate_basis_string(self, call:CoastFNCallAST) -> str:
+        return ""
+
     def generate_constructor_case(self, resv:str, test:CoastAST) -> list[tuple[str, CoastAST]]:
         # ok, so we need to:
         #
@@ -1740,10 +1743,11 @@ class CarpetPython:
 
         if type(call) == CoastFNCallAST and \
            self.is_basis_fn(call.fn):
-            pass
+            print(self.generate_basis_string(call))
         elif type(call) == CoastFNCallAST and \
              self.is_accessor_fn(call.fn):
-            pass
+            obj = call.data[0].to_coast()
+            print(self.generate_accessor_string(obj, call.data[1])
         elif type(call) == CoastFNCallAST:
             print(str(call.fn) + "(", end='')
             l = len(call.data)
