@@ -1468,7 +1468,7 @@ class CarpetPython:
                     "string-iter", "string-map", "string-iter-index",
                     "string-map-index", "string-foldl", "string-foldr",
                     "string-sort", "compare"]
-        return False
+        return fn.identvalue in basislib
 
     def is_accessor(self, fn):
         # checks if we have a call to an accessor;
@@ -1579,7 +1579,7 @@ class CarpetPython:
             print(t.basetype, end='')
 
     def generate_accessor_string(self, resv:str, accessor:Union[int, str]) -> str:
-        if type(accessor) is int:
+        if type(accessor) is int or (type(accessor) is str and accessor.isnumeric()):
             finalaccess = "m_{0}".format(accessor)
         else:
             finalaccess = accessor
@@ -1743,11 +1743,12 @@ class CarpetPython:
 
         if type(call) == CoastFNCallAST and \
            self.is_basis_fn(call.fn):
-            print(self.generate_basis_string(call))
+            print(self.generate_basis_string(call), end='')
         elif type(call) == CoastFNCallAST and \
-             self.is_accessor_fn(call.fn):
+             self.is_accessor(call.fn):
             obj = call.data[0].to_coast()
-            print(self.generate_accessor_string(obj, call.data[1])
+            accessor = call.fn.identvalue[1:]
+            print(self.generate_accessor_string(obj, accessor), end='')
         elif type(call) == CoastFNCallAST:
             print(str(call.fn) + "(", end='')
             l = len(call.data)
