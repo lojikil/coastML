@@ -1578,15 +1578,25 @@ class CarpetPython:
         else:
             print(t.basetype, end='')
 
-    def generate_accessor_string(self, resv:str, accessor:Union[int, str]) -> str:
+    def generate_accessor_string(self, resv:Union[str, None], accessor:Union[int, str]) -> str:
         if type(accessor) is int or (type(accessor) is str and accessor.isnumeric()):
             finalaccess = "m_{0}".format(accessor)
         else:
             finalaccess = accessor
+
+        if resv is None:
+            return ".{0}".format(finalaccess)
+
         return "{0}.{1}".format(resv, finalaccess)
 
-    def generate_basis_string(self, call:CoastFNCallAST) -> str:
-        return ""
+    def generate_basis(self, call:CoastFNCallAST):
+        if call.fn.identvalue == "array-length" or \
+           call.fn.identvalue == "string-length":
+            print("len(", end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(")", end='')
+        else:
+            print("willimplementlater()", end='')
 
     def generate_constructor_case(self, resv:str, test:CoastAST) -> list[tuple[str, CoastAST]]:
         # ok, so we need to:
@@ -1743,12 +1753,12 @@ class CarpetPython:
 
         if type(call) == CoastFNCallAST and \
            self.is_basis_fn(call.fn):
-            print(self.generate_basis_string(call), end='')
+            self.generate_basis(call)
         elif type(call) == CoastFNCallAST and \
              self.is_accessor(call.fn):
-            obj = call.data[0].to_coast()
+            self.generate_dispatch(call.data[0])
             accessor = call.fn.identvalue[1:]
-            print(self.generate_accessor_string(obj, accessor), end='')
+            print(self.generate_accessor_string(None, accessor), end='')
         elif type(call) == CoastFNCallAST:
             print(str(call.fn) + "(", end='')
             l = len(call.data)
