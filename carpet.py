@@ -1590,11 +1590,27 @@ class CarpetPython:
         return "{0}.{1}".format(resv, finalaccess)
 
     def generate_basis(self, call:CoastFNCallAST):
-        if call.fn.identvalue == "array-length" or \
-           call.fn.identvalue == "string-length":
+        basisname = call.fn.identvalue
+        if basisname == "array-length" or basisname == "string-length":
             print("len(", end='')
             self.generate_dispatch(call.data[0], depth=0)
             print(")", end='')
+        elif basisname == "array-get":
+            self.generate_dispatch(call.data[0], depth=0)
+            print("[", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print("]", end='')
+        elif basisname == "array-set!":
+            self.generate_dispatch(call.data[0], depth=0)
+            print("[", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print("] = ", end='')
+            self.generate_dispatch(call.data[2], depth=0)
+        elif basisname == "string-get":
+            self.generate_dispatch(call.data[0], depth=0)
+            print("[", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print("]", end='')
         else:
             print("willimplementlater()", end='')
 
