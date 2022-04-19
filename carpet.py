@@ -1589,6 +1589,15 @@ class CarpetPython:
 
         return "{0}.{1}".format(resv, finalaccess)
 
+    def generate_array(self, ast, depth=0):
+        print('[', end='')
+        l = len(ast.litvalue)
+        for i in range(0, l):
+            self.generate_dispatch(ast.litvalue[i], depth=0)
+            if i < (l - 1):
+                print(', ', end='')
+        print(']', end='')
+
     def generate_basis(self, call:CoastFNCallAST):
         basisname = call.fn.identvalue
         if basisname == "array-length" or basisname == "string-length":
@@ -1817,6 +1826,8 @@ class CarpetPython:
             self.generate_block(ast, depth=depth+1, tail=tail)
         elif type(ast) == CoastTypeDefAST:
             self.generate_type(ast, depth=depth)
+        elif type(ast) is CoastLiteralAST and ast.littype is TokenArrayStart:
+            self.generate_array(ast, depth=depth)
         else:
             print(str(ast), end='')
 
