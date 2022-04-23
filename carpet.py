@@ -1459,15 +1459,17 @@ class CarpetPython:
                     "array-concat", "array-concat!", "array-sub",
                     "array-copy", "array-fill!", "array-blit!",
                     "array->list", "list->array", "array-iter",
-                    "array-map", "array-iter-index", "array-map'index",
-                    "array-foldl", "array-foldr", "array-sort",
+                    "array-map", "array-iter-index", "array-map-index",
+                    "array-foldl", "array-foldr", "array-sort", "array-sort!",
                     "array-stable-sort", "array-fast-sort", "string-length",
                     "string-get", "string-make", "string-init",
                     "string-append", "string-join", "string-contains",
                     "string-concat", "string-copy", "string->array",
                     "string-iter", "string-map", "string-iter-index",
                     "string-map-index", "string-foldl", "string-foldr",
-                    "string-sort", "compare"]
+                    "string-sort", "compare", "char-code", "char-chr",
+                    "char-escaped", "char-lowercase", "char-uppercase",
+                    "char-compare"]
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
@@ -1599,6 +1601,8 @@ class CarpetPython:
         print(']', end='')
 
     def generate_basis(self, call:CoastFNCallAST):
+        # many of these will require some minimal amount of custom
+        # code to support...
         basisname = call.fn.identvalue
         if basisname == "array-length" or basisname == "string-length":
             print("len(", end='')
@@ -1615,6 +1619,9 @@ class CarpetPython:
             self.generate_dispatch(call.data[1], depth=0)
             print("] = ", end='')
             self.generate_dispatch(call.data[2], depth=0)
+        elif basisname == "array-sort!":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(".sort()")
         elif basisname == "string-get":
             self.generate_dispatch(call.data[0], depth=0)
             print("[", end='')
