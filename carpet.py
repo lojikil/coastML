@@ -1462,7 +1462,7 @@ class CarpetPython:
                     "array-map", "array-iter-index", "array-map-index",
                     "array-foldl", "array-foldr", "array-sort", "array-sort!",
                     "array-stable-sort", "array-fast-sort", "string-length",
-                    "string-get", "string-make", "string-init",
+                    "string-get", "string-make", "string-init", "string-split",
                     "string-append", "string-join", "string-contains",
                     "string-concat", "string-copy", "string->array",
                     "string-iter", "string-map", "string-iter-index",
@@ -1627,6 +1627,15 @@ class CarpetPython:
             print("[", end='')
             self.generate_dispatch(call.data[1], depth=0)
             print("]", end='')
+        elif basisname == "string-split":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(".split(", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(")", end='')
+        elif basisname == "string-contains":
+            self.generate_dispatch(call.data[1], depth=0)
+            print(" in ", end='')
+            self.generate_dispatch(call.data[0], depth=0)
         else:
             print("willimplementlater()", end='')
 
