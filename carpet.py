@@ -1695,6 +1695,11 @@ class CarpetPython:
 
         return bindings
 
+    def generate_inverted_case(self, ast, depth=0, tail=False):
+        # ok, here we just need to thread the assigned variable into
+        # the last form of each block, and then just call `generate_case`
+        pass
+
     def generate_case(self, case, depth=0, tail=False):
         ctr = 0
         if case.initial_condition is not None:
@@ -1828,6 +1833,35 @@ class CarpetPython:
             type(ast.value) == CoastFCAST or \
             type(ast.value) == CoastGNAST):
             self.generate_fn(ast, depth=depth, tail=tail)
+        elif type(ast) == CoastAssignAST and \
+             type(ast.value) == CoastCaseAST:
+            # when we have an assignment off of a `case` form, we
+            # actually want to invert the two, since `if` doesn't
+            # introduce a new scope in Python, we can sorta trivially
+            # abuse this
+            #
+            # this also makes me think that we can use this for rewriting
+            # `case` forms in other areas, like function calls; we can pull
+            # the `case` form out of the call, and assign it to a variable,
+            # and then use that within the call itself, sort of like ANF.
+            #
+            # e.g.:
+            #
+            # `foo (bar case x | 10 ... esac);`
+            #
+            # can become:
+            #
+            # [source]
+            # ----
+            # bar_call0 = case x
+            # | 10 ...
+            # esac
+            # foo (bar bar_call0);
+            # ----
+            #
+            # in this way, we can rewrite things to a high-level ANF, and
+            # still get decent performance out of it here
+            self.generate_inverted_case(ast, depth=detph, tail=tail)
         elif type(ast) == CoastAssignAST:
             self.generate_assignment(ast, depth=depth)
         elif type(ast) == CoastFNCallAST or \
