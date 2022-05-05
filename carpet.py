@@ -1698,7 +1698,19 @@ class CarpetPython:
     def generate_inverted_case(self, ast, depth=0, tail=False):
         # ok, here we just need to thread the assigned variable into
         # the last form of each block, and then just call `generate_case`
-        pass
+        varname = ast.name.identvalue
+        varval = ast.name
+        case = ast.value
+        newcase = CoastCaseAST(case.initial_condition, case.conditions)
+        for cndidx in range(0, len(case.conditions)):
+            cnd = case.conditions[cndidx]
+            test = cnd[0]
+            # make a copy of the conditions, then modify them
+            then = cnd[1].progn[:]
+            last = CoastAssignAST(varval, then[-1])
+            then[-1] = last
+            newcase.conditions[cndidx] = [test, CoastBlockAST(then)]
+        self.generate_case(newcase, depth=depth, tail=tail)
 
     def generate_case(self, case, depth=0, tail=False):
         ctr = 0
@@ -1861,7 +1873,7 @@ class CarpetPython:
             #
             # in this way, we can rewrite things to a high-level ANF, and
             # still get decent performance out of it here
-            self.generate_inverted_case(ast, depth=detph, tail=tail)
+            self.generate_inverted_case(ast, depth=depth, tail=tail)
         elif type(ast) == CoastAssignAST:
             self.generate_assignment(ast, depth=depth)
         elif type(ast) == CoastFNCallAST or \
