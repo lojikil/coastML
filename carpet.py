@@ -1737,15 +1737,17 @@ class CarpetPython:
                 if type(test) is CoastIdentAST and test.identvalue == "_":
                     self.generate_indent(depth)
                     print("else:")
-                    self.generate_block(then, depth=depth+1, tail=tail)
+                    self.generate_block(then, depth=depth, tail=tail)
                 elif type(test) is CoastFNCallAST or \
                      type(test) is CoastOpCallAST:
                     # this is actually tricky, because we should be checking
                     # for bindings here, as well as for type constructors and
                     # doing destructuring bind from there... for now, we can
                     # just run things really
-                    self.generate_indent(depth)
                     if ctr > 0:
+                        # we don't need to indent for the initial `if`, because
+                        # we can assume it's properly handled at the block level
+                        self.generate_indent(depth)
                         print('elif ', end='')
                     else:
                         print('if ', end='')
@@ -1768,17 +1770,17 @@ class CarpetPython:
                             self.generate_indent(depth + 1)
                             print("{0} = {1}", binding[0], binding[1])
 
-                    self.generate_block(then, depth=depth+1, tail=tail)
+                    self.generate_block(then, depth=depth, tail=tail)
                 else:
-                    self.generate_indent(depth)
                     if ctr > 0:
+                        self.generate_indent(depth)
                         print('elif ', end='')
                     else:
                         print('if ', end='')
                     print('{0} == '.format(resv), end='')
                     self.generate_dispatch(test, depth=0, tail=False)
                     print(':')
-                    self.generate_block(then, depth=depth+1, tail=tail)
+                    self.generate_block(then, depth=depth, tail=tail)
                     ctr += 1
         else:
             # we're here, so we have no initial condition, but
@@ -1797,12 +1799,11 @@ class CarpetPython:
                     self.generate_call(test, depth=0, tail=False)
                     print(":")
                 else:
-                    self.generate_indent(depth)
                     print("if ", end="")
                     self.generate_call(test, depth=0, tail=False)
                     print(":")
 
-                self.generate_block(then, depth=depth+1, tail=tail)
+                self.generate_block(then, depth=depth, tail=tail)
                 ctr += 1
 
     def generate_call(self, call, depth=0, tail=False):
@@ -1889,9 +1890,16 @@ class CarpetPython:
         elif type(ast) == CoastTypeDefAST:
             self.generate_type(ast, depth=depth)
         elif type(ast) is CoastLiteralAST and ast.littype is TokenArrayStart:
-            self.generate_array(ast, depth=depth)
+            if tail:
+                print('return ', end='')
+                self.generate_array(ast, depth=0)
+            else:
+                self.generate_array(ast, depth=depth)
         else:
-            print(str(ast), end='')
+            if tail:
+                print('return', str(ast), end='')
+            else:
+                print(str(ast), end='')
 
     def generate(self, depth=0):
         # really what needs to happen here is that we
