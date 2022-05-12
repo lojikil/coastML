@@ -1,9 +1,25 @@
-y = 2022;
-m = 4;
-d = 7;
-a = y / 100;
-b = a / 4;
-c = (2 - a) + b;
-e = array-get (modf (365.25 * (y + 4716))) 1;
-f = 30.6001 * (m + 1);
-jd = c + d + e + (f - 1524.5);
+julian-date = fn year month day {
+    # this makes me realize how nice
+    # multiple value binds would be; it
+    # would be nice to just return an
+    # array and do a destructuring bind
+    # on it...
+    y = case month
+        | 1 { year - 1; }
+        | 2 { year - 1; }
+        | _ { year; }
+    esac
+    m = case month
+        | 1 { month + 12; }
+        | 2 { month + 12; }
+        | _ { month; }
+    esac
+    d = day;
+    a = y / 100;
+    b = a / 4;
+    c = (2 - a) + b;
+    e = array-get (modf (365.25 * (y + 4716))) 1;
+    f = 30.6001 * (m + 1);
+    jd = c + d + e + (f - 1524.5);
+    jd;
+}
