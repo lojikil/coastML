@@ -1372,7 +1372,7 @@ class CoastalParser:
             l = self.lexemes[self.current_offset].line
             raise CoastalParseError("Incorrect top-level form {0}".format(str(type(o))), l)
 
-    def load(self):
+    def load(self, skip_comments=True):
         self.lexemes = []
         self.current_offset = 0
         lexer = Lex(self.src)
@@ -1380,7 +1380,14 @@ class CoastalParser:
         while not isinstance(lexeme, TokenEOF):
             if isinstance(lexeme, TokenError):
                 raise CoastalParseError(lexeme.lexeme, lexeme.line)
-            self.lexemes.append(lexeme)
+            # eventually we want to support generating
+            # CommentASTs below, but for now we just want to
+            # generate code. This will strip out all TokenComment
+            # objects, and then later we can handle those edge cases
+            if skip_comments and type(lexeme) == TokenComment:
+                pass
+            else:
+                self.lexemes.append(lexeme)
             lexeme = lexer.next()
 
     def parse(self, reparse=False, ignore_comments=False):
