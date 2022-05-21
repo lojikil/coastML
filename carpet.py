@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #@(#) the bootstrap compiler/parser/lexer for coastML
 #@(#) written in Python3, mostly because I'm on a Python kick
 #@(#) Ideally, we should:
@@ -1498,6 +1499,16 @@ class CarpetPython:
             return True
         return False
 
+    def mung_ident(self, ident):
+        src = ""
+        # XXX We need to decide if we handle modules here
+        # or in the actual python code...
+        if type(ident) is CoastIdentAST:
+            src = ident.identvalue
+        else:
+            src = ident
+        return src.replace("->", "2").replace("-", "_").replace("?", "_p")
+
     def generate_indent(self, cnt):
         for i in range(0, cnt):
             print(self.indent, end='')
@@ -1507,7 +1518,7 @@ class CarpetPython:
     # than the ones that Python allows; probably need
     # to run a quick check on them...
     def generate_fn(self, fn, depth=0, tail=False):
-        n = fn.name.identvalue
+        n = self.mung_ident(fn.name.identvalue)
         v = fn.value
         params = ", ".join([x.to_coast() for x in v.parameters])
         print("def {0}({1}):".format(n, params))
@@ -1549,12 +1560,12 @@ class CarpetPython:
         #
         # NOTE we *also* now need to add constructors to
         # `case` forms
-        base = t.typename
+        base = self.mung_ident(t.typename)
         print("class {0}:".format(base))
         self.generate_indent(depth + 1)
         print("pass")
         for ctor in t.constructors:
-            print("@dataclass\nclass {0}_{1}({0}):".format(base, ctor[0]))
+            print("@dataclass\nclass {0}_{1}({0}):".format(base, self.mung_ident(str(ctor[0]))))
             ctorp = ctor[1]
             if type(ctorp) is CoastLiteralAST and len(ctorp.litvalue) > 0:
                 m = 0
@@ -1924,8 +1935,8 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("usage: carpet.py [command] [file]")
         print("commands:\nload - load a file, and dump the resulting coastML")
-        print("python: dump python from a coastML file, without the compiler")
-        print("cpython: dump python from a coastML file, with the compiler")
+        print("python - dump python from a coastML file, without the compiler")
+        print("cpython - dump python from a coastML file, with the compiler")
         print("note, the last two will be merged at some point")
         sys.exit(0)
 
