@@ -1,0 +1,9 @@
+type Daffodil
+| Assoc is [array[string] array[Daffodil]]
+| DArray is [array[Daffodil]]
+| DInt is [int]
+| DFloat is [float]
+#| Null
+| DBool is [bool]
+| DString is [string]
+epyt

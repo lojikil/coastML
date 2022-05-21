@@ -1009,6 +1009,21 @@ class CoastalParser:
             return CoastLiteralAST(type(self.lexemes[self.current_offset - 1]),
                                    self.lexemes[self.current_offset - 1].lexeme)
 
+    def parse_type_array_literal(self):
+        self.current_offset += 1
+        res = []
+        while self.current_offset < len(self.lexemes):
+            if isinstance(self.lexemes[self.current_offset], TokenArrayEnd):
+                self.current_offset += 1
+                break
+            elif isinstance(self.lexemes[self.current_offset], TokenComma):
+                # commas aren't required, but we parse them if we get
+                # them
+                self.current_offset += 1
+            else:
+                res.append(self.parse_cardinal_type())
+        return CoastLiteralAST(TokenArrayStart, res)
+
     def parse_array_literal(self):
         self.current_offset += 1
         res = []
