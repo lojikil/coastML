@@ -1224,7 +1224,7 @@ class CoastalParser:
             # attempt to parse a complex User type here
             basecompl = self.lexemes[self.current_offset].lexeme
             self.current_offset += 1
-            if type(self.lexemes[self.current_offset + 1]) == TokenArrayStart:
+            if type(self.lexemes[self.current_offset]) == TokenArrayStart:
                 parameter = self.parse_type_array_literal()
             else:
                 parameter = None
