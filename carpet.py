@@ -465,7 +465,7 @@ class Lex:
         self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
         self.operators = re.compile("^([+=!@$%^&*|?<>/-])+$")
         self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod|is|box)$")
-        self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit)$")
+        self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit|bool)$")
         self.bools = re.compile("^(true|false)$")
 
     def next(self):
@@ -1203,8 +1203,9 @@ class CoastalParser:
         #
         # NOTE probably need to add things like "uint64" and such here
         # too.
-        basictypes = ["int", "char", "float", "number", "string", "unit"]
+        basictypes = ["int", "char", "float", "number", "string", "unit", "bool"]
         compltypes = ["list", "array", "deque", "function"]
+
         if type(self.lexemes[self.current_offset]) == TokenType and \
            self.lexemes[self.current_offset].lexeme in basictypes:
             self.current_offset += 1
@@ -1217,13 +1218,14 @@ class CoastalParser:
                                         self.lexemes[self.current_offset].line)
             basecompl = self.lexemes[self.current_offset].lexeme
             self.current_offset += 1
-            parameter = self.parse_array_literal()
+            parameter = self.parse_type_array_literal()
             return CoastTypeAST(basecompl, parameter)
         elif type(self.lexemes[self.current_offset]) == TokenTag:
             # attempt to parse a complex User type here
             basecompl = self.lexemes[self.current_offset].lexeme
+            self.current_offset += 1
             if type(self.lexemes[self.current_offset + 1]) == TokenArrayStart:
-                parameter = self.parse_array_literal()
+                parameter = self.parse_type_array_literal()
             else:
                 parameter = None
             return CoastTypeAST(basecompl, parameter)
@@ -1303,7 +1305,7 @@ class CoastalParser:
                 if type(self.lexemes[self.current_offset]) == TokenKeyword and \
                    self.lexemes[self.current_offset].lexeme == "is":
                     self.current_offset += 1
-                    constructortypes = self.parse_array_literal()
+                    constructortypes = self.parse_type_array_literal()
                 elif (type(self.lexemes[self.current_offset]) == TokenOperator and \
                       self.lexemes[self.current_offset].lexeme == "|") or \
                      (type(self.lexemes[self.current_offset]) == TokenKeyword and \
