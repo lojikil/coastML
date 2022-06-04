@@ -709,11 +709,14 @@ class CoastAST:
         return self.to_coast()
 
 class CoastAssignAST(CoastAST):
-    def __init__(self, n, v):
+    def __init__(self, n, v, t=None):
         self.name = n
         self.value = v
+        self.ntype = t
 
     def to_coast(self, depth=0):
+        if self.ntype:
+            return "{0} is {1} = {2}".format(self.name, self.ntype, self.value)
         return "{0} = {1}".format(self.name, str(self.value))
 
     def __str__(self):
@@ -978,12 +981,26 @@ class CoastalParser:
         return False
 
     def parse_assignment(self):
-        if not self.is_assignment(self.lexemes[self.current_offset + 1]):
+        if not self.is_assignment(self.lexemes[self.current_offset + 1]) and \
+           self.lexemes[self.current_offset + 1].lexeme != "is":
             raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
         name_o = self.current_offset
-        self.current_offset += 2
+        self.current_offset += 1
+        # parse a type first, then a value
+        if type(self.lexemes[self.current_offset]) == TokenKeyword and \
+           self.lexemes[self.current_offset].lexeme == "is":
+            self.current_offset += 1
+            nt = self.parse_cardinal_type()
+            if not self.is_assignment(self.lexemes[self.current_offset]):
+                raise CoastalParseError("`parse_assignment` called in non-assign context after `is`",
+                                        self.lexemes[self.current_offset].line)
+            self.current_offset += 1
+        else:
+            self.current_offset += 1
         value = self.sub_parse()
         name = CoastIdentAST(type(self.lexemes[name_o]), self.lexemes[name_o].lexeme)
+        if nt:
+            return CoastAssignAST(name, value, nt)
         return CoastAssignAST(name, value)
 
     def parse_block(self):
@@ -1205,6 +1222,7 @@ class CoastalParser:
         # too.
         basictypes = ["int", "char", "float", "number", "string", "unit", "bool"]
         compltypes = ["list", "array", "deque", "function"]
+        print('in cardinal parser;', self.current_offset)
 
         if type(self.lexemes[self.current_offset]) == TokenType and \
            self.lexemes[self.current_offset].lexeme in basictypes:
@@ -1230,6 +1248,8 @@ class CoastalParser:
                 parameter = None
             return CoastTypeAST(basecompl, parameter)
         else:
+            print(self.current_offset)
+            print(self.lexemes[self.current_offset])
             raise CoastalParseError("types must be built-in or a Tag",
                                     self.lexemes[self.current_offset].line)
 
@@ -1340,6 +1360,9 @@ class CoastalParser:
         elif type(self.lexemes[self.current_offset]) == TokenIdent:
             # could be a function call or an assignment
             if self.is_assignment(self.lexemes[self.current_offset + 1]):
+                return self.parse_assignment()
+            elif type(self.lexemes[self.current_offset + 1]) == TokenKeyword and \
+                 self.lexemes[self.current_offset + 1].lexeme == "is":
                 return self.parse_assignment()
             else:
                 return self.parse_call()
