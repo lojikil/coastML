@@ -985,6 +985,7 @@ class CoastalParser:
            self.lexemes[self.current_offset + 1].lexeme != "is":
             raise CoastalParseError("`parse_assignment` called in non-assign context", self.lexemes[self.current_offset].line)
         name_o = self.current_offset
+        nt = None
         self.current_offset += 1
         # parse a type first, then a value
         if type(self.lexemes[self.current_offset]) == TokenKeyword and \
@@ -1677,6 +1678,22 @@ class CarpetPython:
             self.generate_dispatch(call.data[1], depth=0)
             print("] = ", end='')
             self.generate_dispatch(call.data[2], depth=0)
+        elif basisname == "array-make":
+            print("[", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(" for _ in range(0, ", end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(")]", end='')
+        elif basisname == "array-init":
+            print("[", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            # NOTE we actually have to bind the value here and
+            # use it for each call to the function in the line
+            # above... the issue here is that python will actually
+            # clobber any variable, so we need a freshsym here
+            print(" for _ in range(0, ", end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(")]", end='')
         elif basisname == "array-sort!":
             self.generate_dispatch(call.data[0], depth=0)
             print(".sort()")
