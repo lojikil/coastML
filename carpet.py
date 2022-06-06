@@ -1222,7 +1222,6 @@ class CoastalParser:
         # too.
         basictypes = ["int", "char", "float", "number", "string", "unit", "bool"]
         compltypes = ["list", "array", "deque", "function"]
-        print('in cardinal parser;', self.current_offset)
 
         if type(self.lexemes[self.current_offset]) == TokenType and \
            self.lexemes[self.current_offset].lexeme in basictypes:
@@ -1453,7 +1452,7 @@ class CoastalParser:
             self.lexemes = []
             self.current_offset = 0
 
-        if len(self.lexemes) > 0:
+        if len(self.asts) > 0:
             return self.asts
 
         self.load()
@@ -1986,7 +1985,7 @@ if __name__ == "__main__":
             src = fh.read()
             c = CoastalParser(src)
             c.load()
-            print(c.sub_parse())
+            print(c.parse())
     elif sys.argv[1] == "python":
         print("pythonizing:", sys.argv[2])
         with open(sys.argv[2]) as fh:
