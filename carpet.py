@@ -1505,8 +1505,8 @@ class CarpetPython:
         # how to optimize away?
         basislib = ["array-length", "array-get", "array-set!", "array-make",
                     "array-init", "array-make-matrix", "array-append",
-                    "array-concat", "array-concat!", "array-sub",
-                    "array-copy", "array-fill!", "array-blit!",
+                    "array-append!", "array-concat", "array-concat!",
+                    "array-sub", "array-copy", "array-fill!", "array-blit!",
                     "array->list", "list->array", "array-iter",
                     "array-map", "array-iter-index", "array-map-index",
                     "array-foldl", "array-foldr", "array-sort", "array-sort!",
@@ -1686,17 +1686,65 @@ class CarpetPython:
             print(")]", end='')
         elif basisname == "array-init":
             print("[", end='')
-            self.generate_dispatch(call.data[1], depth=0)
             # NOTE we actually have to bind the value here and
             # use it for each call to the function in the line
             # above... the issue here is that python will actually
             # clobber any variable, so we need a freshsym here
-            print(" for _ in range(0, ", end='')
+            sym = self.generate_freshsym_string('x')
+            self.generate_dispatch(call.data[1], depth=0)
+            print("({0}) for {0} in range(0, ".format(sym), end='')
             self.generate_dispatch(call.data[0], depth=0)
             print(")]", end='')
+        elif basisname == "array-make-matrix":
+            print('[[', end='')
+            self.generate_dispatch(call.data[2], depth=0)
+            print(' for _ in range(0, ', end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(')] for _ in range(0, ', end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(')]', end='')
+        elif basisname == "array-map":
+            # literally just a list comprehension
+            # map-index is the same, but with a
+            # range and passing the value of current
+            # position and value to the function
+            # `iter` is the same but just in a for loop
+        elif basisname == "array-append!":
+            # NOTE: this sort of thing is *perfect* for the
+            # `alien-class-module` type I was thinking about
+            self.generate_dispatch(call.data[0], depth=0)
+            print('.append(', end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(')', end='')
+        elif basisname == "array-append":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(' + ', end='')
+            self.generate_dispatch(call.data[1], depth=0)
+        elif basisname == "array-blit!":
+            pass
+        elif basisname == "array-concat!":
+            pass
+        elif basisname == "array-concat":
+            print('functools.reduce(lambda x, y: x + y,', end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(')', end='')
+        elif basisname == "array-copy":
+            self.generate_dispatch(call.data[0], depth=0)
+            print('.copy()', end='')
         elif basisname == "array-sort!":
             self.generate_dispatch(call.data[0], depth=0)
             print(".sort()")
+        elif basisname == "array-sub":
+            # XXX: this either needs to be checked to be
+            # within range by the compiler, or we really
+            # need to rename this `array-sub-unsafe` or
+            # `array-sub-exn`
+            self.generate_dispatch(call.data[0], depth=0)
+            print('[', end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(':', end='')
+            self.generate_dispatch(call.data[2], depth=0)
+            print(']', end='')
         elif basisname == "string-get":
             self.generate_dispatch(call.data[0], depth=0)
             print("[", end='')
@@ -1786,6 +1834,16 @@ class CarpetPython:
             then[-1] = last
             newcase.conditions[cndidx] = [test, CoastBlockAST(then)]
         self.generate_case(newcase, depth=depth, tail=tail)
+
+    def generate_freshsym_string(self, basename=None):
+        n = "res"
+
+        if basename is not None:
+            n = basename
+
+        n = "{0}{1}".format(n, self.res_ctr)
+        self.res_ctr += 1
+        return n
 
     def generate_case(self, case, depth=0, tail=False):
         ctr = 0
