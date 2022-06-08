@@ -1,0 +1,6 @@
+a is function[int int int] = fn x y {
+    x + y
+};
+b is int = 10;
+g = array-make 10 0;
+f = array-make-matrix 5 6 0;

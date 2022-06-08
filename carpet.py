@@ -1709,6 +1709,7 @@ class CarpetPython:
             # range and passing the value of current
             # position and value to the function
             # `iter` is the same but just in a for loop
+            pass
         elif basisname == "array-append!":
             # NOTE: this sort of thing is *perfect* for the
             # `alien-class-module` type I was thinking about
