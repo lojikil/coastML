@@ -1709,6 +1709,34 @@ class CarpetPython:
             # range and passing the value of current
             # position and value to the function
             # `iter` is the same but just in a for loop
+            print('[', end='')
+            sym = self.generate_freshsym_string('x')
+            self.generate_dispatch(call.data[0], depth=0)
+            print("({0}) for {0} in ".format(sym), end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print("]", end='')
+        elif basisname == "array-map-index":
+            # literally just a list comprehension
+            # map-index is the same, but with a
+            # range and passing the value of current
+            # position and value to the function
+            # `iter` is the same but just in a for loop
+            print('[', end='')
+            idx = self.generate_freshsym_string('idx')
+            self.generate_dispatch(call.data[0], depth=0)
+            print("({0}, ".format(idx), end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print("[{0}]) for {0} in range(0, len(".format(idx), end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print("))]", end='')
+        elif basisname == "array-iter":
+            # NOTE this is an interesting potential optimization for the
+            # compiler: use alpha conversion to rename the variables to
+            # fresh sysms and remove the function call entirely in favor
+            # of a loop...
+            sym = self.generate_freshsym_string('x')
+            #print('
+        elif basisname == "array-iter-index":
             pass
         elif basisname == "array-append!":
             # NOTE: this sort of thing is *perfect* for the
