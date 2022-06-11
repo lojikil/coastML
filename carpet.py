@@ -1735,9 +1735,20 @@ class CarpetPython:
             # fresh sysms and remove the function call entirely in favor
             # of a loop...
             sym = self.generate_freshsym_string('x')
-            #print('
+            print('for {0} in '.format(sym), end='')
+            self.generate_dispatch(self.call_data[1], depth=0)
+            print(':')
+            self.generate_indent(depth+1)
+            self.generate_dispatch(self.call_data[0]), depth=0)
+            print('({0})'.format(sym))
         elif basisname == "array-iter-index":
-            pass
+            sym = self.generate_freshsym_string('x')
+            print('for {0} in '.format(sym), end='')
+            self.generate_dispatch(self.call_data[1], depth=0)
+            print(':')
+            self.generate_indent(depth+1)
+            self.generate_dispatch(self.call_data[0]), depth=0)
+            print('({0})'.format(sym))
         elif basisname == "array-append!":
             # NOTE: this sort of thing is *perfect* for the
             # `alien-class-module` type I was thinking about
