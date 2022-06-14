@@ -7,6 +7,9 @@ adder is function[int int] = fn x {
 l is function[int unit] = fn x {
     print "x is: " x;
 };
+ll = fn idx value {
+    print "x at offset " idx " is " value;
+}
 b is int = 10;
 g = array-make 10 0;
 h = array-init 10 adder;
@@ -18,3 +21,4 @@ j = array-map-index a h;
 # lifting/closure conversion yet, so I'm being explicit with
 # manual lifting myself
 array-iter l f;
+array-iter-index ll f;

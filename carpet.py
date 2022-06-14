@@ -1742,13 +1742,22 @@ class CarpetPython:
             self.generate_dispatch(call.data[0], depth=0)
             print('({0})'.format(sym))
         elif basisname == "array-iter-index":
+            # also for here, we can freshsym a binding for
+            # the data if it isn't a variable already...
+            # for example, if it's a function call, memoize that to a
+            # freshsym and then use that for all processing thereafter
+            idx = self.generate_freshsym_string('idx')
             sym = self.generate_freshsym_string('x')
-            print('for {0} in '.format(sym), end='')
+            print('for {0} in range(0, len('.format(idx), end='')
             self.generate_dispatch(call.data[1], depth=0)
-            print(':')
+            print(')):')
+            self.generate_indent(depth+1)
+            print('{0} = '.format(sym), end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print('[{0}]'.format(idx))
             self.generate_indent(depth+1)
             self.generate_dispatch(call.data[0], depth=0)
-            print('({0})'.format(sym))
+            print('({0}, {1})'.format(idx, sym))
         elif basisname == "array-append!":
             # NOTE: this sort of thing is *perfect* for the
             # `alien-class-module` type I was thinking about
