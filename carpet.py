@@ -1659,7 +1659,7 @@ class CarpetPython:
                 print(', ', end='')
         print(']', end='')
 
-    def generate_basis(self, call:CoastFNCallAST):
+    def generate_basis(self, call:CoastFNCallAST, depth=0):
         # many of these will require some minimal amount of custom
         # code to support...
         basisname = call.fn.identvalue
@@ -1736,18 +1736,18 @@ class CarpetPython:
             # of a loop...
             sym = self.generate_freshsym_string('x')
             print('for {0} in '.format(sym), end='')
-            self.generate_dispatch(self.call_data[1], depth=0)
+            self.generate_dispatch(call.data[1], depth=0)
             print(':')
             self.generate_indent(depth+1)
-            self.generate_dispatch(self.call_data[0]), depth=0)
+            self.generate_dispatch(call.data[0], depth=0)
             print('({0})'.format(sym))
         elif basisname == "array-iter-index":
             sym = self.generate_freshsym_string('x')
             print('for {0} in '.format(sym), end='')
-            self.generate_dispatch(self.call_data[1], depth=0)
+            self.generate_dispatch(call.data[1], depth=0)
             print(':')
             self.generate_indent(depth+1)
-            self.generate_dispatch(self.call_data[0]), depth=0)
+            self.generate_dispatch(call.data[0], depth=0)
             print('({0})'.format(sym))
         elif basisname == "array-append!":
             # NOTE: this sort of thing is *perfect* for the
