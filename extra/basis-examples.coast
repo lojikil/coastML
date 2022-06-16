@@ -10,6 +10,14 @@ l is function[int unit] = fn x {
 ll = fn idx value {
     print "x at offset " idx " is " value;
 }
+# this is an interesting one; in Python,
+# char is basically a type alias for strings,
+# but in all other languages we support, it will
+# be a completely different type. Unifying those
+# two will be interesting...
+s is function[char unit] = fn x {
+    print "x is: " x;
+};
 b is int = 10;
 g = array-make 10 0;
 h = array-init 10 adder;
@@ -22,3 +30,4 @@ j = array-map-index a h;
 # manual lifting myself
 array-iter l f;
 array-iter-index ll f;
+string-iter s "hello, world";

@@ -465,7 +465,7 @@ class Lex:
         self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
         self.operators = re.compile("^([+=!@$%^&*|?<>/-])+$")
         self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod|is|box)$")
-        self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit|bool)$")
+        self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit|bool|char)$")
         self.bools = re.compile("^(true|false)$")
 
     def next(self):
@@ -1729,7 +1729,7 @@ class CarpetPython:
             print("[{0}]) for {0} in range(0, len(".format(idx), end='')
             self.generate_dispatch(call.data[1], depth=0)
             print("))]", end='')
-        elif basisname == "array-iter":
+        elif basisname == "array-iter" or basisname == "string-iter":
             # NOTE this is an interesting potential optimization for the
             # compiler: use alpha conversion to rename the variables to
             # fresh sysms and remove the function call entirely in favor
@@ -1741,7 +1741,8 @@ class CarpetPython:
             self.generate_indent(depth+1)
             self.generate_dispatch(call.data[0], depth=0)
             print('({0})'.format(sym))
-        elif basisname == "array-iter-index":
+        elif basisname == "array-iter-index" or \
+             basisname == "string-iter-index":
             # also for here, we can freshsym a binding for
             # the data if it isn't a variable already...
             # for example, if it's a function call, memoize that to a
@@ -1765,7 +1766,7 @@ class CarpetPython:
             print('.append(', end='')
             self.generate_dispatch(call.data[1], depth=0)
             print(')', end='')
-        elif basisname == "array-append":
+        elif basisname == "array-append" or basisname == "string-append":
             self.generate_dispatch(call.data[0], depth=0)
             print(' + ', end='')
             self.generate_dispatch(call.data[1], depth=0)
@@ -1808,6 +1809,20 @@ class CarpetPython:
             self.generate_dispatch(call.data[1], depth=0)
             print(" in ", end='')
             self.generate_dispatch(call.data[0], depth=0)
+        elif basisname == "string-map":
+            # so I was thinking there are two ways of doing this:
+            # `''.join(list(map(func, str)))`, which would basically
+            # be p simple, or the same but with a list comprehension.
+            # either should be relatively straight forward I think...
+            print("''.join(list(map(", end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(", ", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(")))", end='')
+        elif basisname == "string-map-index":
+            # now *this* get's a little more interesting...
+            # we could map over zip here...
+            pass
         else:
             print("willimplementlater()", end='')
 
