@@ -2009,7 +2009,7 @@ class CarpetPython:
 
         if type(call) == CoastFNCallAST and \
            self.is_basis_fn(call.fn):
-            self.generate_basis(call)
+            self.generate_basis(call, depth=depth)
         elif type(call) == CoastFNCallAST and \
              self.is_accessor(call.fn):
             self.generate_dispatch(call.data[0])
