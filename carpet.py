@@ -2005,6 +2005,18 @@ class CarpetPython:
 
     def generate_call(self, call, depth=0, tail=False):
         if tail:
+            # we need to be able to check if the item...
+            #
+            # . is a tail call (and thus we rewrite to a loop)
+            # . returns `unit`, and thus does not need a return
+            #
+            # makes me think we need to actually do the type system
+            # currently to make those sorts of adjustments first...
+            # a quick hack would be to just add a check for internal
+            # items we know are rewritten and then ignore the rest
+            # (for now), since it doesn't matter if a function call
+            # returns `None` or `unit`, only that we don't generate
+            # syntactically invalid Python
             print("return ", end='')
 
         if type(call) == CoastFNCallAST and \
