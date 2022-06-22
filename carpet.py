@@ -1643,7 +1643,7 @@ class CarpetPython:
         if type(accessor) is int or (type(accessor) is str and accessor.isnumeric()):
             finalaccess = "m_{0}".format(accessor)
         else:
-            finalaccess = accessor
+            finalaccess = self.mung_ident(accessor)
 
         if resv is None:
             return ".{0}".format(finalaccess)
@@ -2028,7 +2028,7 @@ class CarpetPython:
             accessor = call.fn.identvalue[1:]
             print(self.generate_accessor_string(None, accessor), end='')
         elif type(call) == CoastFNCallAST:
-            print(str(call.fn) + "(", end='')
+            print(self.mung_ident(str(call.fn)) + "(", end='')
             l = len(call.data)
             o = 0
             for i in call.data:
