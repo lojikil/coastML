@@ -1603,7 +1603,7 @@ class CarpetPython:
         base = self.mung_ident(t.typename)
         print("class {0}:".format(base))
         self.generate_indent(depth + 1)
-        print("pass")
+        print("pass\n")
         for ctor in t.constructors:
             print("@dataclass\nclass {0}_{1}({0}):".format(base, self.mung_ident(str(ctor[0]))))
             ctorp = ctor[1]
@@ -1624,6 +1624,7 @@ class CarpetPython:
             else:
                 self.generate_indent(depth + 1)
                 print("pass")
+            print("")
 
     def generate_cardinal_type(self, t, depth=0, tail=False):
         # for right now, we're not attempting to generate
