@@ -1539,6 +1539,14 @@ class CarpetPython:
             return True
         return False
 
+    def is_unit(self, call):
+        # is this something that returns unit
+        # (aka, is this a procedure) and potentially
+        # is rewritten to a lower-level form that
+        # we shouldn't necessarily rely on being a
+        # function call
+        return False
+
     def mung_ident(self, ident):
         src = ""
         # XXX We need to decide if we handle modules here
@@ -2005,7 +2013,7 @@ class CarpetPython:
                 ctr += 1
 
     def generate_call(self, call, depth=0, tail=False):
-        if tail:
+        if tail and not self.is_unit(call):
             # we need to be able to check if the item...
             #
             # . is a tail call (and thus we rewrite to a loop)
