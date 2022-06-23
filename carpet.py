@@ -1545,6 +1545,10 @@ class CarpetPython:
         # is rewritten to a lower-level form that
         # we shouldn't necessarily rely on being a
         # function call
+        if type(call) == CoastFNCallAST and \
+            self.is_basis_fn(call.fn) and \
+            ("iter" in call.fn.identvalue or "!" in call.fn.identvalue):
+            return True
         return False
 
     def mung_ident(self, ident):
