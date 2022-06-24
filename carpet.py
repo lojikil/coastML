@@ -1912,6 +1912,14 @@ class CarpetPython:
             newcase.conditions[cndidx] = [test, CoastBlockAST(then)]
         self.generate_case(newcase, depth=depth, tail=tail)
 
+    def generate_fn_inverted_case(self, ast, depth=0, tail=False):
+        # similar to the above, we actually:
+        #
+        # . freshsym a `case` form in a function call
+        # . call the case threader above
+        # . then call our normal function call here
+        pass
+
     def generate_freshsym_string(self, basename=None):
         n = "res"
 
