@@ -557,8 +557,8 @@ class Lex:
                 no += 1
             if self.src[no + 1] != "'":
                 return TokenError("Incorrectly formatted character", self.line, self.offset)
-            self.offset = no + 1
-            return TokenChar(self.src[o:no + 1], self.line, self.offset)
+            self.offset = no + 2
+            return TokenChar(self.src[o + 1:no + 1], self.line, self.offset)
         elif self.src[o] == '"':
             no = o + 1
             while no < len(self.src) and self.src[no] != '"':
@@ -865,6 +865,16 @@ class CoastLiteralAST(CoastAST):
         if type(self.litvalue) is list:
             vs = [x.to_coast(depth=depth+1) for x in self.litvalue]
             return "[" + " ".join(vs) + "]"
+        elif self.littype is TokenChar:
+            if self.litvalue == "\n":
+                return "'\\n'"
+            elif self.litvalue == "\t":
+                return "'\\t'"
+            elif self.litvalue == "\r":
+                return "'\\r'"
+            elif self.litvalue == "\b":
+                return "'\\b'"
+            return "'{0}'".format(self.litvalue)
         return self.litvalue
 
     def __str__(self):
