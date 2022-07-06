@@ -451,6 +451,28 @@ class CarpetPython:
         # . freshsym a `case` form in a function call
         # . call the case threader above
         # . then call our normal function call here
+        #
+        # we actually need to be able to lift a several case forms
+        # here, and correctly, so that also could be interesting to
+        # register...
+        lifted = []
+        if type(ast) == CoastFNCallAST:
+            newast = CoastFNCallAST(ast.fn, [])
+        else:
+            newast = CoastOpCallAST(ast.op, [])
+        # we actually need to check if we're generating a `op` or a
+        # `fn` call here as well; both have `.data` as a member, but
+        # to setup the actual call we need to know
+        for arg in ast.data:
+            if type(arg) == CoastCaseAST:
+                # ok, we need to lift this here, and rewrite the access to the
+                # lifted var
+                pass
+            else:
+                # here, we just need to copy the argument to the new AST
+                pass
+
+        # and last step, we need to just generate the AST as normal
         pass
 
     def generate_freshsym_string(self, basename=None):
