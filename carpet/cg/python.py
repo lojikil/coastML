@@ -467,13 +467,28 @@ class CarpetPython:
             if type(arg) == CoastCaseAST:
                 # ok, we need to lift this here, and rewrite the access to the
                 # lifted var
-                pass
+                varname = self.generate_freshsym_string("cval")
+                varast = CoastIdentAST(TokenIdent, varname)
+                newassign = CoastAssignAST(varast, arg)
+                # NOTE there's probably nothing stopping us from just generating
+                # in place here, but for now we actually iterate through twice
+                lifted.append(newassign)
+                newast.data.append(varast)
+                # TODO this doesn't handle nested call-case combinations, need to
+                # fix that; what we should do is process a call as a top-level form
+                # return all bound `case` forms, then process those in toto
+                #
+                # I also wonder how often this will come up in practice, but it's good
+                # to support it really
             else:
                 # here, we just need to copy the argument to the new AST
-                pass
+                newast.data.append(arg)
 
         # and last step, we need to just generate the AST as normal
-        pass
+        for l in lifted:
+            self.generate_inverted_case(l, depth=depth, tail=tail)
+
+        self.generate_dispatch(newast)
 
     def generate_freshsym_string(self, basename=None):
         n = "res"
