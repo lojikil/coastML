@@ -445,7 +445,7 @@ class CarpetPython:
             newcase.conditions[cndidx] = [test, CoastBlockAST(then)]
         self.generate_case(newcase, depth=depth, tail=tail)
 
-    def generate_fn_inverted_case(self, ast, depth=0, tail=False):
+    def lift_call_with_case(self, ast):
         # similar to the above, we actually:
         #
         # . freshsym a `case` form in a function call
@@ -470,25 +470,29 @@ class CarpetPython:
                 varname = self.generate_freshsym_string("cval")
                 varast = CoastIdentAST(TokenIdent, varname)
                 newassign = CoastAssignAST(varast, arg)
-                # NOTE there's probably nothing stopping us from just generating
-                # in place here, but for now we actually iterate through twice
                 lifted.append(newassign)
                 newast.data.append(varast)
-                # TODO this doesn't handle nested call-case combinations, need to
-                # fix that; what we should do is process a call as a top-level form
-                # return all bound `case` forms, then process those in toto
-                #
-                # I also wonder how often this will come up in practice, but it's good
-                # to support it really
+            elif type(arg) == CoastFNCallAST or type(arg) == CoastOpCallAST:
+                # so here, we recurse into another `lift_call_wtih_case` call,
+                # and then merge the results. For most of these, nothing likely
+                # happens
+                (sublifted, subnewast) = self.lift_call_with_case(arg)
+                lifted += sublifted
+                newast.data.append(subnewast)
             else:
                 # here, we just need to copy the argument to the new AST
                 newast.data.append(arg)
+        return (lifted, newast)
 
-        # and last step, we need to just generate the AST as normal
+    def generate_fn_inverted_case(self, ast, depth=0, tail=False):
+        # actually lift arguments, if any, into `case` forms, and
+        # then process through each of them
+        (lifted, newast) = self.lift_call_with_case(ast)
+
         for l in lifted:
             self.generate_inverted_case(l, depth=depth, tail=tail)
 
-        self.generate_dispatch(newast)
+        self.generate_call(newast, depth=depth, tail=tail)
 
     def generate_freshsym_string(self, basename=None):
         n = "res"
@@ -512,6 +516,19 @@ class CarpetPython:
                 resv = "res" + str(self.res_ctr)
                 self.res_ctr += 1
                 self.generate_indent(depth)
+                # NOTE there's an interesting edge case here: if we have a `case`
+                # within the function we're attempting to call here, ex:
+                #
+                # [source]
+                # ----
+                # case (some-lambda 10 case x | 11 { "eleven"} | _ { "whoops" } esac)
+                # ...
+                # esac
+                # ----
+                #
+                # we technically don't handle that case here; what we should do
+                # is generate the freshsym, then hand that off to `generate_fn_inverted_case`
+                # then check if it's ok
                 print("{0} = ".format(resv), end='')
                 self.generate_call(case.initial_condition, depth=0, tail=False)
                 print("")
@@ -680,9 +697,9 @@ class CarpetPython:
         elif type(ast) == CoastFNCallAST or \
              type(ast) == CoastOpCallAST:
             if depth == 0:
-                self.generate_call(ast, depth=depth)
+                self.generate_fn_inverted_case(ast)
             else:
-                self.generate_call(ast, depth=depth, tail=tail)
+                self.generate_fn_inverted_case(ast, depth=depth, tail=tail)
         elif type(ast) == CoastCaseAST:
             self.generate_case(ast, depth=depth, tail=tail)
         elif type(ast) == CoastBlockAST:
