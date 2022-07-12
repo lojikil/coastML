@@ -1,7 +1,8 @@
 import sys
 from . import *
 if __name__ == "__main__":
-    print("main", sys.argv)
+    # TODO support an output mode (and default to stringio I guess)
+    # TODO support a REPL
     if len(sys.argv) != 3:
         print("usage: carpet.py [command] [file]")
         print("commands:\nload - load a file, and dump the resulting coastML")
@@ -16,15 +17,19 @@ if __name__ == "__main__":
             src = fh.read()
             c = CoastalParser(src)
             c.load()
-            print(c.parse())
+            for p in c.parse():
+                print(p.to_coast())
+
     elif sys.argv[1] == "python":
-        print("pythonizing:", sys.argv[2])
+        print("# pythonizing:", sys.argv[2])
         with open(sys.argv[2]) as fh:
             src = fh.read()
             c = CarpetPython(src)
             c.load()
             c.generate()
+
     elif sys.argv[1] == "cpython":
-        print("compiler + python: ", sys.argv[2])
+        print("# compiler + python: ", sys.argv[2])
+
     else:
         print("unknown command:", sys.argv[1])
