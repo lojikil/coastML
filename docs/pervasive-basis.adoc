@@ -1,0 +1,52 @@
+== Pervasives & the Basis library
+
+coastML has *both* "pervasives" and a "basis" library; usually ML dialects (and other languages like Haskell) stick to _one_ or the other. My reasoning for including both is simple:
+
+* pervasives are lower-level functions that users can rely on to work consistently regardless of other choices the end user makes
+* basis library functions are those that the end user might want to change
+
+The purpose is that I want to provide consistancy with pervasives and at the same time provide a decent basis library that you might want to swap out. For example, let's look at arrays:
+
+* `array-make` and `Array::make` by default should do the same thing
+* an end user may wish to use some super cool `Array` module that is faster for their platform; they should have the ability to easily swap out the basis library, whilst also not impacting code that expects arrays to work in a specific fashion
+* End users can then easily write their code with `Array` member functions and library writers can easily write their code with `array-` prefixed functions from the pervasives list
+
+In this way, we can support relatively consistent functionality whilst also allowing end users to swap out basis library (in part of in whole) when desired
+
+== Basis library
+
+The pervasives are documented in my blog posts (although I'll eventually rip them out and add them here). 
+
+* [ ] JSON (Daffodil in the basis library)
+** [ ] JSON Streaming
+* [ ] XML (DOM, SAX, STAX)
+* [ ] HTTP
+** [ ] Client
+** [ ] Server (should compile to the usual suspects in each target)
+* [ ] HTTPS (mostly just a wrapper around HTTP and TLS)
+* [ ] TLS
+* [ ] Net
+* [ ] Misc protocols like Gopher, Gemini, NNTP, SSH (which I use)
+* [ ] Tar
+* [ ] Zip
+** [ ] DEFLATE and co
+** [ ] Zip files
+** [ ] zlib as well
+* [ ] Crypto: relatively safe cryptographic choices; for unsafe crytpo, we'll have another package
+** [ ] FIPS mode for the same
+** This should be things like Argon2id and the like for passwords, comparsison functions, HMAC/Hashing, &c
+* [ ] Image
+** [ ] JPEG
+** [ ] GIF
+** [ ] PNG
+** [ ] NetPBM
+* [ ] TOML
+* [ ] Encoding (base64 & co)
+* [ ] Calendar/Datetime/Time/Timezone
+* [ ] dbm (man do I use dbm a lot)
+* [ ] Unix
+* [ ] Fractions/Complex numbers (I could include these like Scheme does, but compile targets could be interesting)
+* [ ] Regular Expressions (should at least guarantee ERE)
+* [ ] Test (incl Fuzzing & SymbEx (and maybe AbsInt))
+* [ ] CSV/TSV
+* [ ] Random/UUID (should rely on system as much as possible and do the right thing otherwise)
