@@ -493,6 +493,10 @@ class Lex:
                     no += 1
                 self.offset = no
                 return TokenIdent(self.src[o:no], self.line, self.offset)
+            else:
+                no = o + 1
+                self.offset = no
+                return TokenOperator(self.src[o:no], self.line, self.offset)
         elif self.src[o] == '(':
             if self.src[o + 1] == ')':
                 self.offset += 2
