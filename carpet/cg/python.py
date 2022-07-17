@@ -645,6 +645,12 @@ class CarpetPython:
                     print(", ", end='')
                 o += 1
             print(")", end='')
+        elif type(call) == CoastOpCallAST and call.op.identvalue == '|>':
+            print('thresh right')
+            pass
+        elif type(call) == CoastOpCallAST and call.op.identvalue == '<|':
+            print('thresh left')
+            pass
         elif type(call) == CoastOpCallAST:
             op = call.op.identvalue
             print("(", end='')
