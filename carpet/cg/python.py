@@ -573,7 +573,7 @@ class CarpetPython:
                     if bindings is not None:
                         for binding in bindings:
                             self.generate_indent(depth + 1)
-                            print("{0} = {1}", binding[0], binding[1])
+                            print("{0} = {1}".format(binding[0], binding[1]))
 
                     self.generate_block(then, depth=depth, tail=tail)
                 else:

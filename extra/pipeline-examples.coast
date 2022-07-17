@@ -1,0 +1,5 @@
+# taking a stab at some code that was the impetus for `case` rewriting
+#
+# basically, I stumbled upon https://www.nu42.com/2014/07/in-ocaml-how-can-i-get-list-of.html[this OCaml blog]
+# via Marginalia, and it made me thing about how I would support the same in coastML
+(string-split-char ':' case (OS::getenv "PATH") | (Result.Some s) { s } | (Result.None) { "" } esac) |> print_string_array;
