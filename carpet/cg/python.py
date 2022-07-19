@@ -113,9 +113,11 @@ class CarpetPython:
         n = ast.name.identvalue
         v = ast.value
         if type(v) == CoastFNCallAST or type(v) == CoastOpCallAST:
+            # FIXME this isn't identing correctly...
             (lifted, newast) = self.lift_call_with_case(v)
             for l in lifted:
                 self.generate_inverted_case(l, depth=depth, tail=False)
+            self.generate_indent(depth)
             print("{0} = ".format(n), end='')
             self.generate_call(newast, depth=0)
         else:
