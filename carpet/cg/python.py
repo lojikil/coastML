@@ -109,11 +109,18 @@ class CarpetPython:
         print("def {0}({1}):".format(n, params))
         self.generate_block(v.body, tail=tail)
 
-    def generate_assignment(self, v, depth=0):
-        n = v.name.identvalue
-        v = v.value
-        print("{0} = ".format(n), end='')
-        self.generate_dispatch(v, depth=depth+1)
+    def generate_assignment(self, ast, depth=0):
+        n = ast.name.identvalue
+        v = ast.value
+        if type(v) == CoastFNCallAST or type(v) == CoastOpCallAST:
+            (lifted, newast) = self.lift_call_with_case(v)
+            for l in lifted:
+                self.generate_inverted_case(l, depth=depth, tail=False)
+            print("{0} = ".format(n), end='')
+            self.generate_call(newast, depth=0)
+        else:
+            print("{0} = ".format(n), end='')
+            self.generate_dispatch(v, depth=depth+1)
 
     def generate_literal(self, v, depth=0):
         print(v.value, end='')
