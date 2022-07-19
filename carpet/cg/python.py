@@ -646,11 +646,25 @@ class CarpetPython:
                 o += 1
             print(")", end='')
         elif type(call) == CoastOpCallAST and call.op.identvalue == '|>':
-            print('thresh right')
-            pass
+            # XXX honestly we should have something that specializes here as
+            # a general case, rather than this sort of test...
+            oldast = None
+            newast = None
+            for idx in range(1, len(call.data)):
+                if oldast is None:
+                    oldast = call.data[idx - 1]
+                newast = CoastFNCallAST(call.data[idx], [oldast])
+                oldast = newast
+            self.generate_fn_inverted_case(newast)
         elif type(call) == CoastOpCallAST and call.op.identvalue == '<|':
-            print('thresh left')
-            pass
+            oldast = None
+            newast = None
+            for idx in range(len(call.data) - 1, 0, -1):
+                if oldast is None:
+                    oldast = call.data[idx]
+                newast = CoastFNCallAST(call.data[idx - 1], [oldast])
+                oldast = newast
+            self.generate_fn_inverted_case(newast)
         elif type(call) == CoastOpCallAST:
             op = call.op.identvalue
             print("(", end='')
