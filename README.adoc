@@ -83,6 +83,8 @@ The top-level interfaces that most people would be interested in are:
 . `carpet.Lex`, which can be used to iteratively tokenize all source code
 . `carpet.CoastalParser`, which returns AST objects and
 . `carpet.CarpetPython`, which actually generates Python code
+. `python3 -m carpet`, which just runs the module's `__main__` code
+. `coastml`, which is just a shell script wrapping the same
 
 [source,python]
 ----
