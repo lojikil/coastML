@@ -1,0 +1,47 @@
+case foo
+| 10 { print "ten"; }
+| 11 { print "eleven"; }
+| _ { print "something else"; }
+esac;
+z = case foo
+| 10 { "ten"; }
+| 11 { "eleven"; }
+| (foo < 0) { "less than 0"; }
+| _ { "something else"; }
+esac;
+c = fn {
+    case foo
+    | 10 { print "ten"; }
+    | 11 { print "eleven"; }
+    | _ { print "something else"; }
+    esac;
+    z = case foo
+    | 10 { "ten"; }
+    | 11 { "eleven"; }
+    | (foo < 0) { "less than 0"; }
+    | _ { "something else"; }
+    esac;
+
+    # XXX without this, we get a parse error 
+    z;
+};
+d = fn {
+    case foo
+    | 10 { print "ten"; }
+    | 11 { print "eleven"; }
+    | _ { print "something else"; }
+    esac
+    # XXX same here, either drop the semicolon or have another form...
+}
+
+case (OS::getenv "PATH")
+    | (Result.Some s) { print s; }
+    | (Result.None) { print ""; }
+esac ;
+a = string-split-char ':' case (OS::getenv "PATH") | (Result.Some s) { s } | (Result.None) { "" } esac ;
+b = fn {
+    a = string-split-char ':' case (OS::getenv "PATH") | (Result.Some s) { s } | (Result.None) { "" } esac 
+}
+
+# XXX we can either drop the `;` above or add the below, otherwise it's a parse error...
+

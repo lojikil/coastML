@@ -524,7 +524,6 @@ class CarpetPython:
                 # clauses...
                 resv = "res" + str(self.res_ctr)
                 self.res_ctr += 1
-                self.generate_indent(depth)
                 # NOTE there's an interesting edge case here: if we have a `case`
                 # within the function we're attempting to call here, ex:
                 #
@@ -541,6 +540,9 @@ class CarpetPython:
                 print("{0} = ".format(resv), end='')
                 self.generate_call(case.initial_condition, depth=0, tail=False)
                 print("")
+                # NOTE we do this so as to support the
+                # initial `if` form
+                self.generate_indent(depth)
             else:
                 resv = case.initial_condition.identvalue
 
@@ -574,6 +576,7 @@ class CarpetPython:
                        type(test.fn) is CoastIdentAST and \
                        test.fn.identtype is TokenNSADT:
                         bindings = self.generate_constructor_case(resv, test)
+                        ctr += 1
                     else:
                         self.generate_call(test, depth=1, tail=False)
 
