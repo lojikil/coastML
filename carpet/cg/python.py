@@ -302,6 +302,24 @@ class CarpetPython:
             self.generate_indent(depth+1)
             self.generate_dispatch(call.data[0], depth=0)
             print('({0})'.format(sym))
+        elif basisname == "array-iter-while" or \
+             basisname == "array-iter-until":
+            # NOTE wow an actual location wherein a `do...while` loop would
+            # actually be the more efficient solution! here, we need to:
+            #
+            # . lift the call (in case it has any functions or `case` forms)
+            # . generate the lifted members *before* the `while`
+            # . generate the body of the `iter` within the `while`
+            # . generate the lifted members again (so as to re-eval the `case`)
+            #
+            # which is probably a bit more than we expected...
+            # actually, thinking about that, how would that work for map?
+            # Thinking further, I don't believe we actually need that second
+            # case generation, since it actually just gets eval'd the one time...
+
+            # thinking about these two... we need an eval-apply loop really
+            (plifted, pnewast) = self.lift_call_with_case(call.data[0]) # predicate lift
+            (blifted, bnewast) = self.list_call_with_case(call.data[1]) # body lift
         elif basisname == "array-iter-index" or \
              basisname == "string-iter-index":
             # also for here, we can freshsym a binding for
