@@ -171,6 +171,12 @@ class CarpetPython:
                     print("")
 
             elif type(ctorp) is list and len(ctorp) > 0:
+                # XXX this is dead code I believe, but I need to
+                # test it more to be sure
+                # also, this sort of thing is what got us in trouble
+                # in carML, so let's really test this and make sure
+                # we never need it
+                # TODO remove this
                 print("# here in list for", ctorn)
                 params = " ".join([x.to_coast() for x in ctorp])
                 ctors.append("| {0} is [{1}]".format(ctorn.to_coast(),
@@ -756,6 +762,10 @@ class CarpetPython:
         # and then return it; this way, we can send it
         # to a REPL or a file, or to the moon if we so
         # choose.
+
+        # XXX really need to be more selective about these...
+        print("from dataclasses import dataclass\nimport functtools")
+        print("import itertools\n")
         for ast in self.asts:
             self.generate_dispatch(ast, depth, tail=True)
             print("")
