@@ -318,8 +318,37 @@ class CarpetPython:
             # case generation, since it actually just gets eval'd the one time...
 
             # thinking about these two... we need an eval-apply loop really
+            #
+            # thinking even FURTHER about it, these should in the general case
+            # just be named idents, so these calls are likely a waste; it's not
+            # impossoble that someone could pass in a call, but it's not the common
+            # case. Additionally, what I'll do for now is actually handle things here
+            # and we can double up in the compiler. Lastly, since we are using
+            # `lift_call_with_case` for the general portion, we actually *do* have a
+            # eval-apply loop going on, of a sort
             (plifted, pnewast) = self.lift_call_with_case(call.data[0]) # predicate lift
             (blifted, bnewast) = self.list_call_with_case(call.data[1]) # body lift
+            (alifted, anewast) = self.list_call_with_case(call.data[2]) # array
+            lifts = plifted + blifted + alifted
+            for lift in lifts:
+                self.generate_inverted_case(lift, depth=depth, tail=False)
+
+            # here, we need to tell if we're doing a while or a while not and
+            # then go from there
+
+            if basisname == "array-iter-while":
+                print("while ", end='')
+            else:
+                print("while not ", end='')
+
+            # we need to actually check what we have here, and
+            # if we have a call-able, we need to interleave that
+            # call here
+            self.generate_call(pnewast, depth=0, tail=False)
+            print(":")
+
+            # ok, we have the general outline here, now we need
+            # to generate the
         elif basisname == "array-iter-index" or \
              basisname == "string-iter-index":
             # also for here, we can freshsym a binding for
