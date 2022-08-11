@@ -40,8 +40,8 @@ class CarpetPython:
                     "array-init", "array-make-matrix", "array-append",
                     "array-append!", "array-concat", "array-concat!",
                     "array-sub", "array-copy", "array-fill!", "array-blit!",
-                    "array->list", "list->array", "array-iter",
-                    "array-map", "array-iter-index", "array-map-index",
+                    "array->list", "list->array", "array-iter", "array-iter-while",
+                    "array-map", "array-iter-index", "array-map-index", "array-iter-until",
                     "array-foldl", "array-foldr", "array-sort", "array-sort!",
                     "array-stable-sort", "array-fast-sort", "string-length",
                     "string-get", "string-make", "string-init", "string-split",
@@ -326,6 +326,7 @@ class CarpetPython:
             # and we can double up in the compiler. Lastly, since we are using
             # `lift_call_with_case` for the general portion, we actually *do* have a
             # eval-apply loop going on, of a sort
+            # XXX fix these, we're attemtping to operate on idents here...
             (plifted, pnewast) = self.lift_call_with_case(call.data[0]) # predicate lift
             (blifted, bnewast) = self.list_call_with_case(call.data[1]) # body lift
             (alifted, anewast) = self.list_call_with_case(call.data[2]) # array
@@ -336,16 +337,39 @@ class CarpetPython:
             # here, we need to tell if we're doing a while or a while not and
             # then go from there
 
-            if basisname == "array-iter-while":
-                print("while ", end='')
-            else:
-                print("while not ", end='')
-
             # we need to actually check what we have here, and
             # if we have a call-able, we need to interleave that
             # call here
-            self.generate_call(pnewast, depth=0, tail=False)
+            # as well, we need to generate a binding for the initial
+            # pass, and then assign it in the loop itself...
+            res = self.generate_freshsym_string("res")
+            resi = CoastIdentAST(res, TokenIdent)
+
+            # originally, I was going for `while` forms, but I realized
+            # that a `for...break` pattern is idiomatic and not terrible
+            # either; it means the code generator can spend less time on
+            # thinking about tracking the variables themselves
+            print("for {0} in ".format(res), end='')
+            self.generate_dispatch(anewast, depth=0, tail=False)
             print(":")
+
+            if basisname == "array-iter-while":
+                self.generate_indent(depth)
+                print("if not", end='')
+            else:
+                self.generate_indent(depth)
+                print("if ", end='')
+
+            if type(pnewast) == CoastFNCallAST or type(pnewast) == CoastOpCallAST:
+                self.generate_call(pnewast, depth=0, tail=False)
+            else:
+                call_pnewast = CoastFNCallAST(pnewast, [resi])
+                self.generate_call(call_pnewast, depth=0, tail=False)
+
+            print(":")
+            self.generate_indent(depth + 1)
+            print("break")
+
 
             # ok, we have the general outline here, now we need
             # to generate the

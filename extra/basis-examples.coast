@@ -41,3 +41,8 @@ a-i-func = fn l f {
     array-iter l f;
 };
 a-i-func l f;
+
+blah = fn x {
+    x < 10;
+}
+array-iter-while blah print [1 2 3 4 5 6 7 8 9 10 11 12 13];
