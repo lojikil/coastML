@@ -327,9 +327,23 @@ class CarpetPython:
             # `lift_call_with_case` for the general portion, we actually *do* have a
             # eval-apply loop going on, of a sort
             # XXX fix these, we're attemtping to operate on idents here...
-            (plifted, pnewast) = self.lift_call_with_case(call.data[0]) # predicate lift
-            (blifted, bnewast) = self.list_call_with_case(call.data[1]) # body lift
-            (alifted, anewast) = self.list_call_with_case(call.data[2]) # array
+            if type(call.data[0]) == CoastFNCallAST or type(call.data[0]) == CoastOpCallAST:
+                (plifted, pnewast) = self.lift_call_with_case(call.data[0]) # predicate lift
+            else:
+                (plifted, pnewast) = ([], call.data[0])
+
+            # body lift
+            if type(call.data[1]) == CoastFNCallAST or type(call.data[1]) == CoastOpCallAST:
+                (blifted, bnewast) = self.lift_call_with_case(call.data[1])
+            else:
+                (blifted, bnewast) = ([], call.data[1])
+
+            # array lift
+            if type(call.data[2]) == CoastFNCallAST or type(call.data[2]) == CoastOpCallAST:
+                (alifted, anewast) = self.lift_call_with_case(call.data[2])
+            else:
+                (alifted, anewast) = ([], call.data[2])
+
             lifts = plifted + blifted + alifted
             for lift in lifts:
                 self.generate_inverted_case(lift, depth=depth, tail=False)
@@ -343,7 +357,7 @@ class CarpetPython:
             # as well, we need to generate a binding for the initial
             # pass, and then assign it in the loop itself...
             res = self.generate_freshsym_string("res")
-            resi = CoastIdentAST(res, TokenIdent)
+            resi = CoastIdentAST(TokenIdent, res)
 
             # originally, I was going for `while` forms, but I realized
             # that a `for...break` pattern is idiomatic and not terrible
@@ -354,10 +368,10 @@ class CarpetPython:
             print(":")
 
             if basisname == "array-iter-while":
-                self.generate_indent(depth)
-                print("if not", end='')
+                self.generate_indent(depth + 1)
+                print("if not ", end='')
             else:
-                self.generate_indent(depth)
+                self.generate_indent(depth + 1)
                 print("if ", end='')
 
             if type(pnewast) == CoastFNCallAST or type(pnewast) == CoastOpCallAST:
@@ -367,12 +381,18 @@ class CarpetPython:
                 self.generate_call(call_pnewast, depth=0, tail=False)
 
             print(":")
-            self.generate_indent(depth + 1)
+            self.generate_indent(depth + 2)
             print("break")
 
-
             # ok, we have the general outline here, now we need
-            # to generate the
+            # to generate the body
+            self.generate_indent(depth + 1)
+            if type(bnewast) == CoastFNCallAST or type(bnewast) == CoastOpCallAST:
+                self.generate_call(bnewast, depth=0, tail=False)
+            else:
+                call_bnewast = CoastFNCallAST(bnewast, [resi])
+                self.generate_call(call_bnewast, depth=0, tail=False)
+
         elif basisname == "array-iter-index" or \
              basisname == "string-iter-index":
             # also for here, we can freshsym a binding for
