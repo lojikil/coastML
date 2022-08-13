@@ -46,3 +46,13 @@ blah = fn x {
     x < 10;
 }
 array-iter-while blah print [1 2 3 4 5 6 7 8 9 10 11 12 13];
+
+filter = fn x {
+    x != ' '
+}
+
+test-string-while = fn x y {
+    string-iter-while x y "this is a test string";
+}
+
+test-string-while filter print;

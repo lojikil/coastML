@@ -47,8 +47,8 @@ class CarpetPython:
                     "string-get", "string-make", "string-init", "string-split",
                     "string-append", "string-join", "string-contains",
                     "string-concat", "string-copy", "string->array",
-                    "string-iter", "string-map", "string-iter-index",
-                    "string-map-index", "string-foldl", "string-foldr",
+                    "string-iter", "string-map", "string-iter-index", "string-iter-while",
+                    "string-map-index", "string-foldl", "string-foldr", "string-iter-until",
                     "string-sort", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
                     "char-compare"]
@@ -303,7 +303,9 @@ class CarpetPython:
             self.generate_dispatch(call.data[0], depth=0)
             print('({0})'.format(sym))
         elif basisname == "array-iter-while" or \
-             basisname == "array-iter-until":
+             basisname == "array-iter-until" or \
+             basisname == "string-iter-while" or \
+             basisname == "string-iter-until":
             # NOTE wow an actual location wherein a `do...while` loop would
             # actually be the more efficient solution! here, we need to:
             #
@@ -367,7 +369,7 @@ class CarpetPython:
             self.generate_dispatch(anewast, depth=0, tail=False)
             print(":")
 
-            if basisname == "array-iter-while":
+            if basisname.endswith("-while"):
                 self.generate_indent(depth + 1)
                 print("if not ", end='')
             else:
@@ -855,7 +857,7 @@ class CarpetPython:
         # choose.
 
         # XXX really need to be more selective about these...
-        print("from dataclasses import dataclass\nimport functtools")
+        print("from dataclasses import dataclass\nimport functools")
         print("import itertools\n")
         for ast in self.asts:
             self.generate_dispatch(ast, depth, tail=True)
