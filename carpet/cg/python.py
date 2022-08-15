@@ -587,6 +587,17 @@ class CarpetPython:
                 (sublifted, subnewast) = self.lift_call_with_case(arg)
                 lifted += sublifted
                 newast.data.append(subnewast)
+            # TODO we need a `self.is_callable` here
+            elif type(arg) == CoastFNAST:
+                # lift functions in params...
+                # also, it makes me wonder if these should ALWAYS be lifted;
+                # small lambda's are more common in some languages, like JavaScript,
+                # but impossible or disuaded in others (like Python)
+                varname = self.generate_freshsym_string("fn")
+                varast = CoastIdentAST(TokenIdent, varname)
+                newassign = CoastAssignAST(varast, arg)
+                lifted.append(newassign)
+                newast.data.append(varast)
             else:
                 # here, we just need to copy the argument to the new AST
                 newast.data.append(arg)
