@@ -33,6 +33,9 @@ class CarpetPython:
                 n = ast.name.identvalue
                 self.vals[n] = ast.value
 
+    def is_callable(self, fn):
+        return type(fn) == CoastFNAST or type(fn) == CoastGNAST or type(fn) == CoastFCAST
+
     def is_basis_fn(self, fn):
         # is this one of the basis functions we know
         # how to optimize away?
@@ -587,8 +590,7 @@ class CarpetPython:
                 (sublifted, subnewast) = self.lift_call_with_case(arg)
                 lifted += sublifted
                 newast.data.append(subnewast)
-            # TODO we need a `self.is_callable` here
-            elif type(arg) == CoastFNAST:
+            elif self.is_callable(arg):
                 # lift functions in params...
                 # also, it makes me wonder if these should ALWAYS be lifted;
                 # small lambda's are more common in some languages, like JavaScript,
