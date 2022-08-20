@@ -24,3 +24,4 @@ import io
 from typing import Union
 from .parse import *
 from .cg.python import CarpetPython
+from .cg.javascript import CarpetJavaScript

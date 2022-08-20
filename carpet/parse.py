@@ -712,6 +712,7 @@ class CoastFNAST(CoastAST):
         self.parameters = p
         self.body = b
         self.types = types
+        self.tail_call = False
 
     def to_coast(self, depth=0):
         params = " ".join([x.to_coast(depth=depth + 1) for x in self.parameters])
