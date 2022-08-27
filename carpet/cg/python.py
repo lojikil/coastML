@@ -3,13 +3,14 @@ from ..parse import *
 # The actual coastML -> Python compiler
 # named after the "coastal carpet python"
 class CarpetPython:
-    def __init__(self, src, indent="    ", fh=None):
+    def __init__(self, src, indent="    ", fh=None, run_compile=True):
         self.fns = {}
         self.vals = {}
         self.src = src
         self.asts = []
         self.indent = indent
         self.res_ctr = 0
+        self.compile = run_compile
         if fh is None:
             self.fh = io.StringIO("")
         else:
@@ -22,6 +23,10 @@ class CarpetPython:
         self.res_ctr = 0
         parser = CoastalParser(self.src)
         self.asts = parser.parse()
+        if self.compile:
+            comp = Compiler.from_asts(self.asts)
+            self.asts = comp.compile()
+
         for ast in self.asts:
             if type(ast) == CoastAssignAST and \
                (type(ast.value) == CoastFNAST or \
