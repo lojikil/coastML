@@ -62,6 +62,21 @@ class Compiler:
             parser = CoastalParser(src)
             parser.load()
             self.asts = parser.parse()
+
+        for ast in self.asts:
+            if type(ast) == CoastTypeAST:
+                # we need to:
+                #
+                # . slice up all constructors and their arity
+                # . add all the types to the top level
+                pass
+            elif type(ast) == CoastAssignAST:
+                # split: add functions to the function pile and add definitions just to the list
+                pass
+            else:
+                # here, we need to iterate over all the members anyway, and make sure they're
+                # all defined...
+                pass
         return self.asts
 
     def is_callable(self, fn):
