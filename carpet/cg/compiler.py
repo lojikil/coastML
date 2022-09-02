@@ -27,6 +27,7 @@ class Compiler:
         self.src = src
         self.options = options
         self.asts = []
+        self.declarations = []
         self.variables = []
         self.functions = []
         self.types = []
@@ -63,8 +64,10 @@ class Compiler:
             parser.load()
             self.asts = parser.parse()
 
+        new_asts = []
+
         for ast in self.asts:
-            if type(ast) == CoastTypeAST:
+            if type(ast) == CoastTypeDefAST:
                 # we need to:
                 #
                 # . slice up all constructors and their arity
@@ -73,11 +76,22 @@ class Compiler:
             elif type(ast) == CoastAssignAST:
                 # split: add functions to the function pile and add definitions just to the list
                 pass
+            elif type(ast) == CoastCaseAST:
+                pass
+            elif type(ast) == CoastOpCallAST:
+                pass
+            elif self.is_callable(ast):
+                pass
             else:
                 # here, we need to iterate over all the members anyway, and make sure they're
                 # all defined...
                 pass
         return self.asts
+
+    def sub_compile(self, fn):
+        # iterate over the forms in `fn` to make sure that each is
+        # lifted as needed and defined
+        return fn
 
     def is_callable(self, fn):
         return type(fn) == CoastFNAST or type(fn) == CoastGNAST or type(fn) == CoastFCAST
