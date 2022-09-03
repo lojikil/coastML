@@ -24,11 +24,16 @@ if __name__ == "__main__":
         print("# pythonizing:", sys.argv[2])
         with open(sys.argv[2]) as fh:
             src = fh.read()
-            c = CarpetPython(src)
+            c = CarpetPython(src, run_compile=False)
             c.load()
             c.generate()
     elif sys.argv[1] == "cpython":
-        print("# compiler + python: ", sys.argv[2])
+        print("# pythonizing:", sys.argv[2])
+        with open(sys.argv[2]) as fh:
+            src = fh.read()
+            c = CarpetPython(src, run_compile=True)
+            c.load()
+            c.generate()
     elif sys.argv[1] == "javascript":
         print("// javascripting:", sys.argv[2])
         with open(sys.argv[2]) as fh:

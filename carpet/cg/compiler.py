@@ -27,12 +27,12 @@ class Compiler:
         self.src = src
         self.options = options
         self.asts = []
-        self.declarations = []
+        self.declarations = {}
         self.variables = []
-        self.functions = []
-        self.types = []
-        self.constructors = []
-        self.modules = []
+        self.functions = {}
+        self.types = {}
+        self.constructors = {}
+        self.modules = {}
         self.import_path = []
         self.res_ctr = 0
 
@@ -75,18 +75,56 @@ class Compiler:
                 pass
             elif type(ast) == CoastAssignAST:
                 # split: add functions to the function pile and add definitions just to the list
-                pass
+                if self.is_callable(ast.value):
+                    # ok, here we have a function (an `fn`, a `fc` or a `gn`)
+                    # that we want to record as a callable
+                    new_asts += [ast]
+                    # ok, and so we want to store the name and the arity of
+                    # functions; we probably also should store type information
+                    # but for now we can just store arity, and the typing pass
+                    # can do a lookup
+                    self.functions[ast.fn.identvalue] = len(fn.value.parameters)
+                    # really, we should `sub_compile` here, but for now
+                    # I just want to get functions checked at the top level
+                elif type(ast.value) == CoastCaseAST:
+                    # we need to invert `case` forms
+                    # NOTE this brings up a good point:
+                    # do blocks scope? they should, but we're
+                    # abusing the fact that currently they do
+                    # not. Really this should generate a:
+                    #
+                    # . current-level declare
+                    # . a `set!` form in the inversion
+                    #
+                    # this style was ok when it was just python
+                    # but now that we're in the real compiler
+                    # that is used for a range of compilers, we need
+                    # to fix this
+                    #
+                    # TODO: fix the above
+
+                    new_asts += [self.invert_case(ast)]
+                    self.variables += ast.name.identvalue
+                else:
+                    # here, we have a simple value assignment
+                    new_asts += [ast]
+                    self.variables += ast.name.identvalue
             elif type(ast) == CoastCaseAST:
+                # here we have to:
+                #
+                # . check if the condition is a call that requires a lift
+                # . check if all cases make syntactic sense
                 pass
-            elif type(ast) == CoastOpCallAST:
-                pass
-            elif self.is_callable(ast):
-                pass
+            elif type(ast) == CoastOpCallAST or self.is_callable(ast)
+                (lifted, newcall) = self.lift_call_with_case(ast)
+                new_asts += lifted
+                new_asts += [newcall]
             else:
                 # here, we need to iterate over all the members anyway, and make sure they're
                 # all defined...
                 pass
-        return self.asts
+        self.asts = new_asts
+        return new_asts
 
     def sub_compile(self, fn):
         # iterate over the forms in `fn` to make sure that each is
@@ -163,7 +201,7 @@ class Compiler:
             src = ident
         return src.replace("->", "2").replace("-", "_").replace("?", "_p")
 
-    def generate_inverted_case(self, ast, depth=0, tail=False):
+    def invert_case(self, ast, depth=0, tail=False):
         # ok, here we just need to thread the assigned variable into
         # the last form of each block, and then just call `generate_case`
         varname = ast.name.identvalue
@@ -178,7 +216,8 @@ class Compiler:
             last = CoastAssignAST(varval, then[-1])
             then[-1] = last
             newcase.conditions[cndidx] = [test, CoastBlockAST(then)]
-        self.generate_case(newcase, depth=depth, tail=tail)
+
+        return newcase
 
     def lift_call_with_case(self, ast):
         # similar to the above, we actually:

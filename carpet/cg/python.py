@@ -1,4 +1,5 @@
 from ..parse import *
+from .compiler import Compiler
 
 # The actual coastML -> Python compiler
 # named after the "coastal carpet python"
@@ -24,7 +25,7 @@ class CarpetPython:
         parser = CoastalParser(self.src)
         self.asts = parser.parse()
         if self.compile:
-            comp = Compiler.from_asts(self.asts)
+            comp = Compiler.from_asts(self.src, self.asts)
             self.asts = comp.compile()
 
         for ast in self.asts:
