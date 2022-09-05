@@ -147,6 +147,20 @@ class Compiler:
                 (lifted, newcall) = self.lift_call_with_case(ast)
                 new_asts += lifted
                 new_asts += [newcall]
+                # NOTE would be really nice to make recommendations here
+                # for example, if you try to call "ripnt", we could recommend
+                # "print"; need to port my Levenshtein code from Reason...
+                if self.is_callable(ast):
+                    # we have a function; check that it's a function we know
+                    # about, such as a basis function or one that the user has
+                    # defined
+                    pass
+                else:
+                    # we have an operator, check if it's one we know about
+                    pass
+
+                # XXX and here we need to check all variables to see if we
+                # know about those as well...
             else:
                 # here, we need to iterate over all the members anyway, and make sure they're
                 # all defined...
