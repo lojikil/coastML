@@ -72,7 +72,21 @@ class Compiler:
                 #
                 # . slice up all constructors and their arity
                 # . add all the types to the top level
-                pass
+                new_asts += [ast]
+
+                # ok, so constructors is actually broken down
+                # as tuples of (CoastIdentAST(name), CoastLiteralList(types))
+                # so here, we need to deconstruct the pairing there and
+                # store the arity of the constructor. In theory we could
+                # store the parameters in the dict as well...
+                for ctor, ctorp in ast.constructors:
+                    ctorn = "{0}.{1}".format(ast.typename, ctor)
+                    if type(ctorp) == CoastLiteralAST:
+                        self.contructors[ctorn] = len(ctorp.litvalue)
+                    elif type(ctorp) == list:
+                        self.constructors[ctorn] = len(ctorp)
+                    else:
+                        self.contructors[ctorn] = 0
             elif type(ast) == CoastAssignAST:
                 # split: add functions to the function pile and add definitions just to the list
                 if self.is_callable(ast.value):
