@@ -112,10 +112,24 @@ class Compiler:
             elif type(ast) == CoastCaseAST:
                 # here we have to:
                 #
-                # . check if the condition is a call that requires a lift
-                # . check if all cases make syntactic sense
-                pass
-            elif type(ast) == CoastOpCallAST or self.is_callable(ast)
+                # . [X] check if the condition is a call that requires a lift
+                # . [ ] check if all cases make syntactic sense
+                if self.is_callable(ast.initial_condition) or \
+                   type(ast.initial_condition) == CoastOpCallAST:
+                    (sub_ic, sub_ic_newast) = self.lift_call_with_case(ast.initial_condition)
+                    # ok, so we either have:
+                    #
+                    # . a list of new bindings for the condition OR
+                    # . an empty list
+                    #
+                    # in the case of the former, we need to build a new
+                    # `case` form and return the prepended list of forms
+                    nc = CoastCaseAST(sub_ic_newast, ast.conditions)
+                    new_asts += sub_ic
+                    new_asts += [nc]
+                else:
+                    new_asts += [ast]
+            elif type(ast) == CoastOpCallAST or self.is_callable(ast):
                 (lifted, newcall) = self.lift_call_with_case(ast)
                 new_asts += lifted
                 new_asts += [newcall]
