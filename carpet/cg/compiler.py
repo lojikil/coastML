@@ -82,11 +82,11 @@ class Compiler:
                 for ctor, ctorp in ast.constructors:
                     ctorn = "{0}.{1}".format(ast.typename, ctor)
                     if type(ctorp) == CoastLiteralAST:
-                        self.contructors[ctorn] = len(ctorp.litvalue)
+                        self.constructors[ctorn] = len(ctorp.litvalue)
                     elif type(ctorp) == list:
                         self.constructors[ctorn] = len(ctorp)
                     else:
-                        self.contructors[ctorn] = 0
+                        self.constructors[ctorn] = 0
             elif type(ast) == CoastAssignAST:
                 # split: add functions to the function pile and add definitions just to the list
                 if self.is_callable(ast.value):
