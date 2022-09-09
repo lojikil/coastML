@@ -97,7 +97,7 @@ class Compiler:
                     # functions; we probably also should store type information
                     # but for now we can just store arity, and the typing pass
                     # can do a lookup
-                    self.functions[ast.fn.identvalue] = len(fn.value.parameters)
+                    self.functions[ast.name.identvalue] = len(ast.value.parameters)
                     # really, we should `sub_compile` here, but for now
                     # I just want to get functions checked at the top level
                 elif type(ast.value) == CoastCaseAST:
