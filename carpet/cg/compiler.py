@@ -13,6 +13,12 @@
 from ..parse import *
 
 
+class CoastalCompilerError(Exception):
+    def __init__(self, message, line):
+        self.message = message
+        self.line = line
+
+
 class Compiler:
     # so, basic goals here:
     #
@@ -65,7 +71,6 @@ class Compiler:
             self.asts = parser.parse()
 
         new_asts = []
-
         for ast in self.asts:
             if type(ast) == CoastTypeDefAST:
                 # we need to:
@@ -143,18 +148,19 @@ class Compiler:
                     new_asts += [nc]
                 else:
                     new_asts += [ast]
-            elif type(ast) == CoastOpCallAST or self.is_callable(ast):
+            elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
                 (lifted, newcall) = self.lift_call_with_case(ast)
                 new_asts += lifted
                 new_asts += [newcall]
                 # NOTE would be really nice to make recommendations here
                 # for example, if you try to call "ripnt", we could recommend
                 # "print"; need to port my Levenshtein code from Reason...
-                if self.is_callable(ast):
+                if type(ast) == CoastFNCallAST:
                     # we have a function; check that it's a function we know
                     # about, such as a basis function or one that the user has
                     # defined
-                    pass
+                    if not self.is_basis_fn(ast.fn) and ast.fn.identvalue not in self.functions:
+                        raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.fn.identvalue), 0)
                 else:
                     # we have an operator, check if it's one we know about
                     pass
