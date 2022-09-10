@@ -14,6 +14,10 @@ from ..parse import *
 
 
 class CoastalCompilerError(Exception):
+    # need to change how we store line
+    # numbers; we attach them to lexemes,
+    # but not ASTs, which we should start
+    # doing
     def __init__(self, message, line):
         self.message = message
         self.line = line
