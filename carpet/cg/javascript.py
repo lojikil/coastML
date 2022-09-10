@@ -1,36 +1,28 @@
 from ..parse import *
+from .compiler import Compiler
 
 # The actual coastML -> JavaScript compiler
 class CarpetJavaScript:
-    def __init__(self, src, indent="    ", fh=None):
-        self.fns = {}
-        self.vals = {}
+    def __init__(self, src, indent="  ", fh=None, compiler=True):
         self.src = src
         self.asts = []
         self.indent = indent
         self.res_ctr = 0
+        self.compile = compiler
         if fh is None:
             self.fh = io.StringIO("")
         else:
             self.fh = fh
 
     def load(self):
-        self.fns = {}
-        self.vals = {}
         self.asts = []
         self.res_ctr = 0
         parser = CoastalParser(self.src)
         self.asts = parser.parse()
-        for ast in self.asts:
-            if type(ast) == CoastAssignAST and \
-               (type(ast.value) == CoastFNAST or \
-                type(ast.value) == CoastFCAST or \
-                type(ast.value) == CoastGNAST):
-                n = ast.name.identvalue
-                self.fns[n] = ast.value
-            elif type(ast) == CoastAssignAST:
-                n = ast.name.identvalue
-                self.vals[n] = ast.value
+
+        if self.compile:
+            comp = Compiler.from_asts(self.src, self.asts)
+            self.asts = comp.compile()
 
     def is_callable(self, fn):
         return type(fn) == CoastFNAST or type(fn) == CoastGNAST or type(fn) == CoastFCAST
@@ -100,16 +92,13 @@ class CarpetJavaScript:
         for i in range(0, cnt):
             print(self.indent, end='')
 
-    # we have to lift lambdas most places in Python
-    # because our lambdas are much more expressive
-    # than the ones that Python allows; probably need
-    # to run a quick check on them...
     def generate_fn(self, fn, depth=0, tail=False):
         n = self.mung_ident(fn.name.identvalue)
         v = fn.value
         params = ", ".join([x.to_coast() for x in v.parameters])
-        print("def {0}({1}):".format(n, params))
-        self.generate_block(v.body, tail=tail)
+        print("function {0}({1}) {{".format(n, params))
+        self.generate_block(v.body, tail=tail, braces=False)
+        print("}");
 
     def generate_assignment(self, ast, depth=0):
         n = ast.name.identvalue
@@ -120,21 +109,24 @@ class CarpetJavaScript:
             for l in lifted:
                 self.generate_inverted_case(l, depth=depth, tail=False)
             self.generate_indent(depth)
-            print("{0} = ".format(n), end='')
+            print("let {0} = ".format(n), end='')
             self.generate_call(newast, depth=0)
         else:
-            print("{0} = ".format(n), end='')
+            print("let {0} = ".format(n), end='')
             self.generate_dispatch(v, depth=depth+1)
 
     def generate_literal(self, v, depth=0):
         print(v.value, end='')
 
-    def generate_block(self, block, depth=0, tail=False):
+    def generate_block(self, block, depth=0, tail=False, braces=True):
         # we need to track if this or the call
         # is in the tail position, and return
         # from there, or really any form...
         l = len(block.progn)
         o = 0
+        if braces:
+            self.generate_indent(depth);
+            print("{")
         for b in block.progn:
             self.generate_indent(depth + 1)
             if tail and o == (l - 1):
@@ -143,6 +135,9 @@ class CarpetJavaScript:
                 self.generate_dispatch(b, depth=depth+1)
             print("")
             o += 1
+        if braces:
+            self.generate_indent(depth)
+            print("}")
 
     def generate_type(self, t, depth=0, tail=False):
         # this is going to be interesting; basically, we
@@ -663,7 +658,7 @@ class CarpetJavaScript:
                 bindings = None
                 if type(test) is CoastIdentAST and test.identvalue == "_":
                     self.generate_indent(depth)
-                    print("else:")
+                    print("else ", end='')
                     self.generate_block(then, depth=depth, tail=tail)
                 elif type(test) is CoastFNCallAST or \
                      type(test) is CoastOpCallAST:
@@ -675,9 +670,9 @@ class CarpetJavaScript:
                         # we don't need to indent for the initial `if`, because
                         # we can assume it's properly handled at the block level
                         self.generate_indent(depth)
-                        print('elif ', end='')
+                        print('else if (', end='')
                     else:
-                        print('if ', end='')
+                        print('if (', end='')
 
                     # ok, so if we have a type constructor, we want
                     # to actually generate a `type(...) is ...` check
@@ -691,7 +686,7 @@ class CarpetJavaScript:
                     else:
                         self.generate_call(test, depth=1, tail=False)
 
-                    print(':')
+                    print(') ', end='')
 
                     if bindings is not None:
                         for binding in bindings:
@@ -702,13 +697,15 @@ class CarpetJavaScript:
                 else:
                     if ctr > 0:
                         self.generate_indent(depth)
-                        print('elif ', end='')
+                        print('else if(', end='')
                     else:
-                        print('if ', end='')
+                        print('if(', end='')
                     print('{0} == '.format(resv), end='')
                     self.generate_dispatch(test, depth=0, tail=False)
-                    print(':')
-                    self.generate_block(then, depth=depth, tail=tail)
+                    print('){')
+                    self.generate_block(then, depth=depth, tail=tail, braces=False)
+                    self.generate_indent(depth)
+                    print('}')
                     ctr += 1
         else:
             # we're here, so we have no initial condition, but
@@ -869,8 +866,6 @@ class CarpetJavaScript:
         # choose.
 
         # XXX really need to be more selective about these...
-        print("from dataclasses import dataclass\nimport functools")
-        print("import itertools\n")
         for ast in self.asts:
             self.generate_dispatch(ast, depth, tail=True)
             print("")
