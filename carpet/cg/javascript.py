@@ -109,10 +109,10 @@ class CarpetJavaScript:
             for l in lifted:
                 self.generate_inverted_case(l, depth=depth, tail=False)
             self.generate_indent(depth)
-            print("let {0} = ".format(n), end='')
+            print("var {0} = ".format(n), end='')
             self.generate_call(newast, depth=0)
         else:
-            print("let {0} = ".format(n), end='')
+            print("var {0} = ".format(n), end='')
             self.generate_dispatch(v, depth=depth+1)
 
     def generate_literal(self, v, depth=0):
