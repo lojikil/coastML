@@ -137,7 +137,7 @@ class Compiler:
                 #
                 # . [X] check if the condition is a call that requires a lift
                 # . [ ] check if all cases make syntactic sense
-                if self.is_callable(ast.initial_condition) or \
+                if type(ast.initial_condition) == CoastFNCallAST or \
                    type(ast.initial_condition) == CoastOpCallAST:
                     (sub_ic, sub_ic_newast) = self.lift_call_with_case(ast.initial_condition)
                     # ok, so we either have:
