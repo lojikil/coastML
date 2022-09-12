@@ -116,7 +116,7 @@ class CarpetPython:
         v = fn.value
         params = ", ".join([x.to_coast() for x in v.parameters])
         print("def {0}({1}):".format(n, params))
-        self.generate_block(v.body, tail=tail)
+        self.generate_block(v.body, tail=tail, depth=depth+1)
 
     def generate_assignment(self, ast, depth=0):
         n = ast.name.identvalue
@@ -126,7 +126,8 @@ class CarpetPython:
             (lifted, newast) = self.lift_call_with_case(v)
             for l in lifted:
                 self.generate_inverted_case(l, depth=depth, tail=False)
-            self.generate_indent(depth)
+            if len(lifted) != 0:
+                self.generate_indent(depth)
             print("{0} = ".format(n), end='')
             self.generate_call(newast, depth=0)
         else:
@@ -143,11 +144,12 @@ class CarpetPython:
         l = len(block.progn)
         o = 0
         for b in block.progn:
-            self.generate_indent(depth + 1)
             if tail and o == (l - 1):
-                self.generate_dispatch(b, depth=depth+1, tail=True)
+                self.generate_indent(depth)
+                self.generate_dispatch(b, depth=depth, tail=True)
             else:
-                self.generate_dispatch(b, depth=depth+1)
+                self.generate_indent(depth)
+                self.generate_dispatch(b, depth=depth)
             print("")
             o += 1
 
@@ -671,7 +673,7 @@ class CarpetPython:
                 if type(test) is CoastIdentAST and test.identvalue == "_":
                     self.generate_indent(depth)
                     print("else:")
-                    self.generate_block(then, depth=depth, tail=tail)
+                    self.generate_block(then, depth=depth + 1, tail=tail)
                 elif type(test) is CoastFNCallAST or \
                      type(test) is CoastOpCallAST:
                     # this is actually tricky, because we should be checking
@@ -705,7 +707,7 @@ class CarpetPython:
                             self.generate_indent(depth + 1)
                             print("{0} = {1}".format(binding[0], binding[1]))
 
-                    self.generate_block(then, depth=depth, tail=tail)
+                    self.generate_block(then, depth=depth + 1, tail=tail)
                 else:
                     if ctr > 0:
                         self.generate_indent(depth)
@@ -715,7 +717,7 @@ class CarpetPython:
                     print('{0} == '.format(resv), end='')
                     self.generate_dispatch(test, depth=0, tail=False)
                     print(':')
-                    self.generate_block(then, depth=depth, tail=tail)
+                    self.generate_block(then, depth=depth + 1, tail=tail)
                     ctr += 1
         else:
             # we're here, so we have no initial condition, but
