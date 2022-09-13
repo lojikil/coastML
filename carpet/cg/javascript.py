@@ -97,7 +97,7 @@ class CarpetJavaScript:
         v = fn.value
         params = ", ".join([x.to_coast() for x in v.parameters])
         print("function {0}({1}) {{".format(n, params))
-        self.generate_block(v.body, tail=tail, braces=False)
+        self.generate_block(v.body, depth=depth+1, tail=tail, braces=False)
         print("}");
 
     def generate_assignment(self, ast, depth=0):
@@ -108,7 +108,8 @@ class CarpetJavaScript:
             (lifted, newast) = self.lift_call_with_case(v)
             for l in lifted:
                 self.generate_inverted_case(l, depth=depth, tail=False)
-            self.generate_indent(depth)
+            if len(lifted) != 0:
+                self.generate_indent(depth)
             print("var {0} = ".format(n), end='')
             self.generate_call(newast, depth=0)
         else:
@@ -128,11 +129,11 @@ class CarpetJavaScript:
             self.generate_indent(depth);
             print("{")
         for b in block.progn:
-            self.generate_indent(depth + 1)
+            self.generate_indent(depth)
             if tail and o == (l - 1):
-                self.generate_dispatch(b, depth=depth+1, tail=True)
+                self.generate_dispatch(b, depth=depth, tail=True)
             else:
-                self.generate_dispatch(b, depth=depth+1)
+                self.generate_dispatch(b, depth=depth)
             print("")
             o += 1
         if braces:
@@ -657,9 +658,10 @@ class CarpetJavaScript:
                 then = cnd[1]
                 bindings = None
                 if type(test) is CoastIdentAST and test.identvalue == "_":
+                    print(" else {")
+                    self.generate_block(then, depth=depth+1, tail=tail, braces=False)
                     self.generate_indent(depth)
-                    print("else ", end='')
-                    self.generate_block(then, depth=depth, tail=tail)
+                    print("}")
                 elif type(test) is CoastFNCallAST or \
                      type(test) is CoastOpCallAST:
                     # this is actually tricky, because we should be checking
@@ -669,8 +671,7 @@ class CarpetJavaScript:
                     if ctr > 0:
                         # we don't need to indent for the initial `if`, because
                         # we can assume it's properly handled at the block level
-                        self.generate_indent(depth)
-                        print('else if (', end='')
+                        print(' else if (', end='')
                     else:
                         print('if (', end='')
 
@@ -693,19 +694,18 @@ class CarpetJavaScript:
                             self.generate_indent(depth + 1)
                             print("{0} = {1}".format(binding[0], binding[1]))
 
-                    self.generate_block(then, depth=depth, tail=tail)
+                    self.generate_block(then, depth=depth+1, tail=tail)
                 else:
                     if ctr > 0:
-                        self.generate_indent(depth)
-                        print('else if(', end='')
+                        print(' else if(', end='')
                     else:
                         print('if(', end='')
                     print('{0} == '.format(resv), end='')
                     self.generate_dispatch(test, depth=0, tail=False)
                     print('){')
-                    self.generate_block(then, depth=depth, tail=tail, braces=False)
+                    self.generate_block(then, depth=depth + 1, tail=tail, braces=False)
                     self.generate_indent(depth)
-                    print('}')
+                    print('}', end='')
                     ctr += 1
         else:
             # we're here, so we have no initial condition, but
@@ -716,20 +716,20 @@ class CarpetJavaScript:
                 then = clause[1]
 
                 if type(test) is CoastIdentAST and test.identvalue == "_":
-                    self.generate_indent(depth)
-                    print("else:")
+                    print(" else {")
                 elif ctr > 0:
-                    self.generate_indent(depth)
-                    print("elif ", end="")
+                    print(" else if(", end="")
                     self.generate_call(test, depth=0, tail=False)
-                    print(":")
+                    print(") {")
                 else:
-                    print("if ", end="")
+                    print("if(", end="")
                     self.generate_call(test, depth=0, tail=False)
-                    print(":")
+                    print(") {")
 
                 self.generate_block(then, depth=depth, tail=tail)
                 ctr += 1
+                self.generate_indent(depth)
+                print("}")
 
     def generate_call(self, call, depth=0, tail=False):
         if tail and not self.is_unit(call):
