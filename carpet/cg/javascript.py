@@ -268,12 +268,13 @@ class CarpetJavaScript:
             # range and passing the value of current
             # position and value to the function
             # `iter` is the same but just in a for loop
-            print('[', end='')
-            sym = self.generate_freshsym_string('x')
-            self.generate_dispatch(call.data[0], depth=0)
-            print("({0}) for {0} in ".format(sym), end='')
+            #
+            # ok, for JavaScript, we have to use Array.prototype.map
+            # and the arrow spread operator...
             self.generate_dispatch(call.data[1], depth=0)
-            print("]", end='')
+            print('.map(', end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(')', end='')
         elif basisname == "array-map-index":
             # literally just a list comprehension
             # map-index is the same, but with a
