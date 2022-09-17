@@ -145,6 +145,14 @@ class Compiler:
                     if not self.is_basis_fn(ast.initial_condition.fn) and \
                        ast.initial_condition.fn.identvalue not in self.functions:
                         raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.initial_condition.fn.identvalue), 0)
+
+                    for cnd in ast.conditions:
+                        print(cnd[0], type(cnd[0]))
+                        if type(cnd[0]) == CoastFNCallAST and \
+                           not self.is_basis_fn(cnd[0].fn) and \
+                           cnd[0].fn.identvalue not in self.functions:
+                            raise CoastalCompilerError("undefined function: \"{0}\"".format(cnd[0].fn.identvalue), 0)
+
                     (sub_ic, sub_ic_newast) = self.lift_call_with_case(ast.initial_condition)
                     # ok, so we either have:
                     #
