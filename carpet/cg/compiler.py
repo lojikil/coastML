@@ -128,7 +128,7 @@ class Compiler:
                     # to fix this
                     #
                     # TODO: fix the above
-
+                    self.is_valid_case_exn(ast)
                     new_asts += [self.invert_case(ast)]
                     self.variables += ast.name.identvalue
                 else:
@@ -138,20 +138,11 @@ class Compiler:
             elif type(ast) == CoastCaseAST:
                 # here we have to:
                 #
-                # . [X] check if the condition is a call that requires a lift
-                # . [ ] check if all cases make syntactic sense
+                # . [x] check if the condition is a call that requires a lift
+                # . [x] check if all cases make syntactic sense
                 if type(ast.initial_condition) == CoastFNCallAST or \
                    type(ast.initial_condition) == CoastOpCallAST:
-                    if not self.is_basis_fn(ast.initial_condition.fn) and \
-                       ast.initial_condition.fn.identvalue not in self.functions:
-                        raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.initial_condition.fn.identvalue), 0)
-
-                    for cnd in ast.conditions:
-                        if type(cnd[0]) == CoastFNCallAST and \
-                           not self.is_basis_fn(cnd[0].fn) and \
-                           cnd[0].fn.identvalue not in self.functions:
-                            raise CoastalCompilerError("undefined function: \"{0}\"".format(cnd[0].fn.identvalue), 0)
-
+                    self.is_valid_case_exn(ast)
                     (sub_ic, sub_ic_newast) = self.lift_call_with_case(ast.initial_condition)
                     # ok, so we either have:
                     #
@@ -255,6 +246,25 @@ class Compiler:
             ("iter" in call.fn.identvalue or "!" in call.fn.identvalue):
             return True
         return False
+
+    def is_valid_case_exn(self, ast):
+        print("# here on 251")
+
+        # actually, we can do *all* checks here, just make the `if`
+        # below check if it's a function _first_, and then we can
+        # do whatever there
+
+        if not self.is_basis_fn(ast.initial_condition.fn) and \
+           ast.initial_condition.fn.identvalue not in self.functions:
+            print("# here on 251")
+            raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.initial_condition.fn.identvalue), 0)
+
+        for cnd in ast.conditions:
+            print("# here on 258")
+            if type(cnd[0]) == CoastFNCallAST and \
+               not self.is_basis_fn(cnd[0].fn) and \
+               cnd[0].fn.identvalue not in self.functions:
+                raise CoastalCompilerError("undefined function: \"{0}\"".format(cnd[0].fn.identvalue), 0)
 
     def mung_ident(self, ident):
         src = ""

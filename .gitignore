@@ -1,3 +1,5 @@
+_darcs
+__pycache__
 *.swp
 *.swo
 *.pyc
