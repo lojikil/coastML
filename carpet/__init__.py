@@ -25,3 +25,4 @@ from typing import Union
 from .parse import *
 from .cg.python import CarpetPython
 from .cg.javascript import CarpetJavaScript
+from .cg.compiler import Compiler

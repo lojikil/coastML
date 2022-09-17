@@ -70,7 +70,7 @@ class Compiler:
         # ** basically, my thought is that they should just end up as either compile time checked or runtime code
         # ** can be options to force one or the other really...
         if self.asts == []:
-            parser = CoastalParser(src)
+            parser = CoastalParser(self.src)
             parser.load()
             self.asts = parser.parse()
 
@@ -147,7 +147,6 @@ class Compiler:
                         raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.initial_condition.fn.identvalue), 0)
 
                     for cnd in ast.conditions:
-                        print(cnd[0], type(cnd[0]))
                         if type(cnd[0]) == CoastFNCallAST and \
                            not self.is_basis_fn(cnd[0].fn) and \
                            cnd[0].fn.identvalue not in self.functions:
