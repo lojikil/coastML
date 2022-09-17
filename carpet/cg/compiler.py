@@ -92,10 +92,13 @@ class Compiler:
                     ctorn = "{0}.{1}".format(ast.typename, ctor)
                     if type(ctorp) == CoastLiteralAST:
                         self.constructors[ctorn] = len(ctorp.litvalue)
+                        self.functions[ctorn] = len(ctorp.litvalue)
                     elif type(ctorp) == list:
                         self.constructors[ctorn] = len(ctorp)
+                        self.functions[ctorn] = len(ctorp)
                     else:
                         self.constructors[ctorn] = 0
+                        self.functions[ctorn] = 0
             elif type(ast) == CoastAssignAST:
                 # split: add functions to the function pile and add definitions just to the list
                 if self.is_callable(ast.value):
@@ -139,6 +142,9 @@ class Compiler:
                 # . [ ] check if all cases make syntactic sense
                 if type(ast.initial_condition) == CoastFNCallAST or \
                    type(ast.initial_condition) == CoastOpCallAST:
+                    if not self.is_basis_fn(ast.initial_condition.fn) and \
+                       ast.initial_condition.fn.identvalue not in self.functions:
+                        raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.initial_condition.fn.identvalue), 0)
                     (sub_ic, sub_ic_newast) = self.lift_call_with_case(ast.initial_condition)
                     # ok, so we either have:
                     #
