@@ -128,7 +128,7 @@ class Compiler:
                     # to fix this
                     #
                     # TODO: fix the above
-                    self.is_valid_case_exn(ast)
+                    self.is_valid_case_exn(ast.value)
                     new_asts += [self.invert_case(ast)]
                     self.variables += ast.name.identvalue
                 else:
@@ -248,19 +248,16 @@ class Compiler:
         return False
 
     def is_valid_case_exn(self, ast):
-        print("# here on 251")
-
         # actually, we can do *all* checks here, just make the `if`
         # below check if it's a function _first_, and then we can
         # do whatever there
 
-        if not self.is_basis_fn(ast.initial_condition.fn) and \
+        if type(ast.initial_condition) is CoastFNCallAST and \
+           not self.is_basis_fn(ast.initial_condition.fn) and \
            ast.initial_condition.fn.identvalue not in self.functions:
-            print("# here on 251")
             raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.initial_condition.fn.identvalue), 0)
 
         for cnd in ast.conditions:
-            print("# here on 258")
             if type(cnd[0]) == CoastFNCallAST and \
                not self.is_basis_fn(cnd[0].fn) and \
                cnd[0].fn.identvalue not in self.functions:
