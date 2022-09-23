@@ -140,9 +140,9 @@ class Compiler:
                 #
                 # . [x] check if the condition is a call that requires a lift
                 # . [x] check if all cases make syntactic sense
+                self.is_valid_case_exn(ast)
                 if type(ast.initial_condition) == CoastFNCallAST or \
                    type(ast.initial_condition) == CoastOpCallAST:
-                    self.is_valid_case_exn(ast)
                     (sub_ic, sub_ic_newast) = self.lift_call_with_case(ast.initial_condition)
                     # ok, so we either have:
                     #
@@ -247,7 +247,7 @@ class Compiler:
             return True
         return False
 
-    def is_valid_case_exn(self, ast):
+    def is_valid_case_exn(self, ast, env=None):
         # actually, we can do *all* checks here, just make the `if`
         # below check if it's a function _first_, and then we can
         # do whatever there
@@ -255,6 +255,10 @@ class Compiler:
         if type(ast.initial_condition) is CoastFNCallAST and \
            not self.is_basis_fn(ast.initial_condition.fn) and \
            ast.initial_condition.fn.identvalue not in self.functions:
+            # we need something to check a env object when passed in...
+            #if env is not None and ast.initial_condition.fn.indentvalue no in env["functions"]:
+            #    raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.initial_condition.fn.identvalue), 0)
+            #else:
             raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.initial_condition.fn.identvalue), 0)
 
         for cnd in ast.conditions:
