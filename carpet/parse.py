@@ -536,6 +536,35 @@ class Lex:
             else:
                 self.offset = no
                 return TokenColon(self.line, self.offset)
+        elif self.src[0] == '-':
+            no = o + 1
+            if no >= len(self.src):
+                self.offset = no
+                return TokenOp(self.src[o:no], self.line, self.offset)
+            elif self.src[no] in '0123456789':
+                no += 1
+                floatflag = False
+                while no < len(self.src) and self.src[no] in '0123456789.':
+                    if self.src[no] == '.':
+                        if floatflag:
+                            return TokenError("incorrect formatted negative numeral: double '.'", self.line, self.offset)
+                        floatflag = True
+                    no += 1
+                self.offset = no
+                if floatflag:
+                    return TokenFloat(self.src[o:no], self.line, self.offset)
+                return TokenInt(self.src[o:no], self.line, self.offset)
+            else:
+                while no < len(self.src) and self.src[no] not in '(){}[]; \n\r':
+                    no += 1
+                lexeme = self.src[o:no]
+                self.offset = no
+                if self.operators.match(lexeme):
+                    return TokenOperator(lexeme, self.line, self.offset)
+                elif self.ident.match(lexeme):
+                    return TokenIdent(lexeme, self.line, self.offset)
+                else:
+                    return TokenError("Malformed ident/tag: {0}".format(lexeme), self.line, self.offset)
         elif self.src[o] == "'":
             no = o + 1
             if self.src[no] == '\\':
