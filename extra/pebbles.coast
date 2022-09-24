@@ -1,0 +1,89 @@
+# a simulator for 'digital pebbles', as mentioned
+# in the book 'A Prayer for the crown shy'
+# basically, in the book you can purchase things
+# for "pebs," aka "digital pebbles," which
+# are used for currency. The book states that
+# it's mostly used for voluntary payment
+# as well as "pay what you want." Additionally,
+# people can go negative. So I was curious about
+# how that would actually work:
+#
+# * doesn't everyone just end up negative?
+# ** if you start at zero, everyone just goes negative to make value
+# * is there an optimal starting value?
+# * how quickly would the system "run out of money?"
+# * is there any real utility for this?
+# ** in the book it seemed like it was to show worth, which is good unto itself
+# ** but I was curious if you could make it work (and not have one person end up with all value)
+
+# We have various types of actors
+# NOTE need to be able to name parameters ala Scala
+type Actor 
+| Farmer is [int int int]
+| Constructor is [int int int]
+| ShopKeeper is [int int int]
+| Artist is [int int int]
+| Tinker is [int int int]
+| Consumer is [int int]
+epyt
+
+# this is what I was thinking about,
+# what about having "base" constructors
+# for when we just want a struct?
+type Simulation
+| Base is [array[Actor]]
+epyt
+
+# NOTE we really need to fix parses, because an `fn` could start a function call, not just an assignment
+# you should be able to say `a = fn x { x + x } 10;` and have `a == 20`
+
+# return a random actor
+random-actor = fn g sc sv {
+    greed = case g
+    | -1 { random-int 20 }
+    | _ { g }
+    esac;
+
+    starting-capital = case sc
+    | -1 { random-int 100 }
+    | _ { sc }
+    esac;
+
+    starting-value = case sv
+    | -1 { random-int 100 }
+    | _ { sv }
+    esac;
+
+    # this function creates all actors as equi-probable; would be
+    # interesting to see what other constraints we could have, like
+    # following the usual social patterns for things
+    case (random-int 6)
+    | 0 { Actor.Farmer greed starting-capital starting-value }
+    | 1 { Actor.Constructor greed starting-capital starting-value }
+    | 2 { Actor.ShopKeeper greed starting-capital starting-value }
+    | 3 { Actor.Artist greed starting-capital starting-value }
+    | 4 { Actor.Tinker greed starting-capital starting-value }
+    | 5 { Actor.Consumer greed starting-capital }
+    esac
+};
+
+# optional parameters
+# types
+# refinements to those types
+make-simulation = fn number-of-actors starting-capital greed {
+
+};
+
+# we really need to be able to mark the
+# returns... also, it would be nice to
+# be able to do named return values
+tick = fn actors {
+
+};
+
+# definitely need to be able to add a --main
+# argument to the compiler to be able to call
+# whatever main function we have
+main = fn { 
+
+};
