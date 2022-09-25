@@ -1391,6 +1391,9 @@ class CoastalParser:
                 return self.parse_assignment()
             else:
                 return self.parse_call()
+        elif type(self.lexemes[self.current_offset]) == TokenNSADT or \
+             type(self.lexemes[self.current_offset]) == TokenNSMod:
+            return self.parse_call()
         elif self.simple_value(self.lexemes[self.current_offset]):
             # function call or just literal...
             return self.parse_call()

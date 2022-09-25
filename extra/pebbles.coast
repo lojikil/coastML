@@ -86,4 +86,4 @@ tick = fn actors {
 # whatever main function we have
 main = fn { 
 
-};
+}
