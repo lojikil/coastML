@@ -536,7 +536,7 @@ class Lex:
             else:
                 self.offset = no
                 return TokenColon(self.line, self.offset)
-        elif self.src[0] == '-':
+        elif self.src[o] == '-':
             no = o + 1
             if no >= len(self.src):
                 self.offset = no
