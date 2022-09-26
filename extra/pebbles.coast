@@ -57,6 +57,7 @@ random-actor = fn g sc sv {
     # this function creates all actors as equi-probable; would be
     # interesting to see what other constraints we could have, like
     # following the usual social patterns for things
+    # XXX need to rewrite constructor names
     case (random-int 6)
     | 0 { Actor.Farmer greed starting-capital starting-value }
     | 1 { Actor.Constructor greed starting-capital starting-value }
@@ -71,7 +72,13 @@ random-actor = fn g sc sv {
 # types
 # refinements to those types
 make-simulation = fn number-of-actors starting-capital greed {
-
+    # NOTE would be great to support SRFI-26 (cut) here
+    # we have the forms...
+    # XXX symbols aren't being mung'd in pervasives
+    make-inner-simulation = fn idx {
+        random-actor greed starting-capital idx
+    };
+    array-init number-of-actors make-inner-simulation;
 };
 
 # we really need to be able to mark the
