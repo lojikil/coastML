@@ -767,6 +767,19 @@ class CarpetPython:
             self.generate_dispatch(call.data[0])
             accessor = call.fn.identvalue[1:]
             print(self.generate_accessor_string(None, accessor), end='')
+        elif type(call) == CoastFNCallAST and \
+             call.fn.identtype == TokenNSADT:
+            # We have a constructor of some type here; split the name and just generate as normal
+            ctorn = self.mung_ident(call.fn.identvalue.replace('.', '_'))
+            print("{0}(".format(ctorn), end='')
+            l = len(call.data)
+            o = 0
+            for i in call.data:
+                self.generate_dispatch(i, depth=depth)
+                if o < (l - 1):
+                    print(", ", end='')
+                o += 1
+            print(")", end='')
         elif type(call) == CoastFNCallAST:
             print(self.mung_ident(str(call.fn)) + "(", end='')
             l = len(call.data)
