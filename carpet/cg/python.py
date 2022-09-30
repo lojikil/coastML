@@ -827,7 +827,9 @@ class CarpetPython:
            (type(ast.value) == CoastFNAST or \
             type(ast.value) == CoastFCAST or \
             type(ast.value) == CoastGNAST):
-            self.generate_fn(ast, depth=depth, tail=tail)
+            # NOTE: regardless, when we have an assignment, the
+            # the final step of the `fn` form is the tail
+            self.generate_fn(ast, depth=depth, tail=True)
         elif type(ast) == CoastAssignAST and \
              type(ast.value) == CoastCaseAST:
             # when we have an assignment off of a `case` form, we
