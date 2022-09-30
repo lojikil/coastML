@@ -881,7 +881,10 @@ class CarpetPython:
                 self.generate_array(ast, depth=depth)
         else:
             if tail:
-                print('return', str(ast), end='')
+                print('return ', end='')
+
+            if type(ast) is CoastIdentAST:
+                print(self.mung_ident(ast), end='')
             else:
                 print(str(ast), end='')
 
