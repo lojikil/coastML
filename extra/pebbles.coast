@@ -76,6 +76,7 @@ make-simulation = fn number-of-actors starting-capital greed {
     # we have the forms...
     # XXX symbols aren't being mung'd in pervasives
     make-inner-simulation = fn idx {
+        # XXX this isn't being turned into a `return`...
         random-actor greed starting-capital idx
     };
     array-init number-of-actors make-inner-simulation;
@@ -84,7 +85,7 @@ make-simulation = fn number-of-actors starting-capital greed {
 # we really need to be able to mark the
 # returns... also, it would be nice to
 # be able to do named return values
-tick = fn actors {
+tick = fn actors idx {
 
 };
 
@@ -92,5 +93,8 @@ tick = fn actors {
 # argument to the compiler to be able to call
 # whatever main function we have
 main = fn { 
-
+    # the pervasives of `stream-iter-while` and the like
+    # would be hugely helpful here
+    actors = make-simulation 25 -1 -1;
+    print actors
 }
