@@ -116,7 +116,7 @@ class Compiler:
                     # XXX we also need to check if it's self-TCO as well...
                     if self.is_self_tail_call(ast.name, ast.value):
                         ast.value.self_tail_call = True
-                    self.compile(ast.value)
+                    #self.sub_compile(ast.value)
                 elif type(ast.value) == CoastCaseAST:
                     # we need to invert `case` forms
                     # NOTE this brings up a good point:
