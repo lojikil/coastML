@@ -742,6 +742,7 @@ class CoastFNAST(CoastAST):
         self.body = b
         self.types = types
         self.tail_call = False
+        self.self_tail_call = False
 
     def to_coast(self, depth=0):
         params = " ".join([x.to_coast(depth=depth + 1) for x in self.parameters])
@@ -755,10 +756,13 @@ class CoastFNAST(CoastAST):
         return self.to_coast()
 
 class CoastGNAST(CoastAST):
-    def __init__(self, p, b, types=None):
+    def __init__(self, n, p, b, types=None):
         self.parameters = p
         self.body = b
         self.types = types
+        self.name = n
+        self.tail_call = False
+        self.self_tail_call = False
 
     def to_coast(self, depth=0):
         params = " ".join(self.parameters)
@@ -766,7 +770,7 @@ class CoastGNAST(CoastAST):
         if types is not None:
             params = "[{0}] {1}".format(" ".join(self.types), params)
 
-        return "gn {0} {1}".format(params, self.body)
+        return "gn {0} {1} {2}".format(self.name, params, self.body)
 
     def __str__(self):
         return self.to_coast()
@@ -776,6 +780,8 @@ class CoastFCAST(CoastAST):
         self.parameters = p
         self.conditions = c
         self.types = types
+        self.tail_call = False
+        self.self_tail_call = False
 
     def to_coast(self, depth=0):
         params = " ".join(self.parameters)

@@ -112,6 +112,11 @@ class Compiler:
                     self.functions[ast.name.identvalue] = len(ast.value.parameters)
                     # really, we should `sub_compile` here, but for now
                     # I just want to get functions checked at the top level
+                    #
+                    # XXX we also need to check if it's self-TCO as well...
+                    if self.is_self_tail_call(ast.name, ast.value):
+                        ast.value.self_tail_call = True
+                    self.compile(ast.value)
                 elif type(ast.value) == CoastCaseAST:
                     # we need to invert `case` forms
                     # NOTE this brings up a good point:
@@ -132,6 +137,8 @@ class Compiler:
                     new_asts += [self.invert_case(ast)]
                     self.variables += ast.name.identvalue
                 else:
+                    # XXX we should check for a function call here and
+                    # lift `case` and the like
                     # here, we have a simple value assignment
                     new_asts += [ast]
                     self.variables += ast.name.identvalue
@@ -214,7 +221,8 @@ class Compiler:
                     "string-map-index", "string-foldl", "string-foldr", "string-iter-until",
                     "string-sort", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
-                    "char-compare"]
+                    "char-compare", "random-int", "random-float", "random-int-range",
+                    "random-bool", "random-choice"]
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
@@ -266,6 +274,21 @@ class Compiler:
                not self.is_basis_fn(cnd[0].fn) and \
                cnd[0].fn.identvalue not in self.functions:
                 raise CoastalCompilerError("undefined function: \"{0}\"".format(cnd[0].fn.identvalue), 0)
+
+    def is_self_tail_call(self, name, call):
+        # ok, so we need to walk down the spine of a function
+        # and check if there's even a _single_ tail call therein.
+        # then we can just mark this as true and leave the actual
+        # work to the individual code generators
+        if self.is_callable(call):
+            pass
+        elif type(call) == CoastCaseAST:
+            pass
+        elif type(call) == CoastFNCallAST:
+            pass
+        else:
+            pass
+        return False
 
     def mung_ident(self, ident):
         src = ""
