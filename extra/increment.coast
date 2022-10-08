@@ -1,0 +1,24 @@
+# Adding this, mostly for the notes
+make-increment = fn amt {
+    total = 0;
+    increment = fn {
+        # XXX we have to make the `set!` pervasive...
+        # or actually make Boxes (which I sort of like better)
+        # XXX we also have `:=`, so should use that...
+        set! total (total + amt);
+        total
+    };
+    increment
+}
+
+f = make-increment 2;
+g = make-increment 5;
+
+# XXX need to add `print` to the pervasives
+# this would also mean tracking and adding all
+# languages' style of print (e.g. `console.log` in JS)
+print (f);
+print (g);
+print (f);
+print (f);
+print (g)
