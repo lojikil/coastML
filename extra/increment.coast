@@ -5,6 +5,8 @@ make-increment = fn amt {
         # XXX we have to make the `set!` pervasive...
         # or actually make Boxes (which I sort of like better)
         # XXX we also have `:=`, so should use that...
+        # XXX also, we need to track that `total` is nonlocal
+        # in python, and apply the `nonlocal` keyword
         set! total (total + amt);
         total
     };
