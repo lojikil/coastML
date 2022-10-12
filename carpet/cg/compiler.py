@@ -281,22 +281,22 @@ class Compiler:
         # then we can just mark this as true and leave the actual
         # work to the individual code generators
         if self.is_callable(call):
-            self.is_self_tail_call(name, call.body)
+            return self.is_self_tail_call(name, call.body)
         elif type(call) == CoastBlockAST:
             # walk call.progn and check the last
             # member
-            return self.is_self_tail_call(call.progn[-1])
+            return self.is_self_tail_call(name, call.progn[-1])
         elif type(call) == CoastCaseAST:
             # here, we just have to walk each case and
             # check if the then-arm contains a call
             for c in call.conditions:
-                if self.is_self_tail_call(self, name, c[1])
+                if self.is_self_tail_call(name, c[1]):
                     return True
         elif type(call) == CoastFNCallAST:
             # also need to check that it even IS an
             # ident
             if type(call.fn) == CoastIdentAST:
-                return call.fn.identvalue == name
+                return call.fn.identvalue == name.identvalue
         else:
             # we _probably_ won't have another form here,
             # but who knows.
