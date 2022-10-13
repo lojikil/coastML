@@ -1,0 +1,20 @@
+foo = fn x y {
+    x + y
+}
+;
+
+# ok, external functions work...
+bar = fn x {
+    foo x 100
+};
+
+baz = fn x {
+    # XXX ok, this isn't having a return added...
+    inner-baz = fn x {
+        x + 100
+    };
+    inner-baz x
+};
+
+(bar 10) |> print;
+(baz 10) |> print
