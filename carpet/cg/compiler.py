@@ -390,6 +390,15 @@ class Compiler:
 
         self.generate_call(newast, depth=depth, tail=tail)
 
+    def generate_shadows_self_tail_call(self, ast, detph=0):
+        # here, we need to walk the spine of AST, and find
+        # locations to shadow parameters, and rewrite those.
+        # thus, the code generator need only know that something
+        # is a self-TCO, and wrap the body in a `while` (or w/e),
+        # generating the rest as normal. See `extra/fib.coast` for
+        # an example
+        pass
+
     def generate_freshsym_string(self, basename=None):
         n = "res"
 

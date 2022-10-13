@@ -116,7 +116,10 @@ class CarpetPython:
         v = fn.value
         params = ", ".join([x.to_coast() for x in v.parameters])
         print("def {0}({1}):".format(n, params))
-        self.generate_block(v.body, tail=tail, depth=depth+1)
+        if v.self_tail_call:
+            self.generate_self_tail_call(n, v)
+        else:
+            self.generate_block(v.body, tail=tail, depth=depth+1)
 
     def generate_assignment(self, ast, depth=0):
         n = ast.name.identvalue
@@ -152,6 +155,28 @@ class CarpetPython:
                 self.generate_dispatch(b, depth=depth)
             print("")
             o += 1
+
+    def generate_self_tail_call(self, name, val, depth=0):
+        # generally here what I've done previously is to
+        # annotate where we shadow parameters and then
+        # generate the function normally...
+        #
+        # here, we need to actually walk the spine
+        # ourselves, and shadow rather than return...
+        # it might be easier to add a pseudo-AST like
+        # `self-tail-call` with the parameters...
+        #
+        # OH... *or* we could have the compiler rewrite
+        # those for us... then the code generator just
+        # needs to insert a `while` or the like...
+        # something like `lift_tail_calls` in the
+        # compiler, as well as an option to determine
+        # *how* we do that (if at all). Then here, all
+        # we need to do is generate a `while` (or w/e)
+        # and then use normal functions to do the rest,
+        # since in theory the compiler has taken care
+        # of the various rewrites for us
+        pass
 
     def generate_type(self, t, depth=0, tail=False):
         # this is going to be interesting; basically, we

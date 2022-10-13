@@ -1,0 +1,46 @@
+# simple Fibonacci sequence generator
+# useful to tell that our self-TCO rewriting is working
+
+fib = fn n i j {
+    # this should be rewritten (defunctionalized really)
+    # to something similar to the following:
+    #
+    # [source]
+    # ----
+    # define fib(n : int, i : int, j : int) {
+    #     shadow_n, shadow_i, shadow_j : int
+    #     while(n >= 0) {
+    #         shadow_i = i + j
+    #         shadow_j = i
+    #         shadow_n = n - 1
+    #         i = shadow_i
+    #         j = shadow_j
+    #         n = shadow_n
+    #     }
+    #     return i
+    # }
+    # ----
+    #
+    # with a bit more analysis we can remove many of the
+    # shadow parameters, but it's not terrible either really
+
+    case n 
+        | (n >= 0) {
+            # this is a common optimization of fib; we
+            # recurse only with two accumulators, and
+            # the count. We trade a small bit of  stack
+            # space (for extra parameters) for a huge
+            # cost savings in stack depth
+            fib (n - 1) (i + j) i
+        }
+        | _ { i }
+    esac 
+}
+
+fib_n = fn n {
+    case n 
+        | (n <= 0) { 1 }
+        | 1 { 1 }
+        | _ { (fib_n (n - 1)) + (fib_n (n - 2)) }
+    esac
+}
