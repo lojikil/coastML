@@ -390,14 +390,58 @@ class Compiler:
 
         self.generate_call(newast, depth=depth, tail=tail)
 
-    def generate_shadows_self_tail_call(self, ast, detph=0):
-        # here, we need to walk the spine of AST, and find
-        # locations to shadow parameters, and rewrite those.
-        # thus, the code generator need only know that something
-        # is a self-TCO, and wrap the body in a `while` (or w/e),
-        # generating the rest as normal. See `extra/fib.coast` for
-        # an example
-        pass
+    def generate_shadows_self_tail_call(self, ast):
+        # ok, so we know we have a self-TC lambda here,
+        # but we don't _really_ want to insert other pseudo
+        # instructions, and we don't want to rely on the
+        # code generators knowing what to do, other than
+        # wrapping the body of this lambda in a `while` or
+        # other loop. So this method will:
+        #
+        # . walk the spine of the `block`
+        # . generate the initial shadow params
+        # . rewrite any calls to `self` as a shadow-swap of parameters
+        # . remove the call
+        # . return the new AST
+
+        # this should hold the current idx and AST
+        work_queue = []
+        idx = 0
+        tast = None
+
+        ret = None
+
+        if type(ast) == CoastFNAST:
+            ret = CoastFNAST(None, None)
+        elif type(ast) == CoastGNAST:
+            ret = CoastGNAST(None, None, None)
+        elif type(ast) == CoastFCAST:
+            ret = CoastFCAST(None, None)
+
+
+        while len(work_queue) > 0:
+            if self.is_callable(call):
+                return self.is_self_tail_call(name, call.body)
+            elif type(call) == CoastBlockAST:
+                # walk call.progn and check the last
+                # member
+                return self.is_self_tail_call(name, call.progn[-1])
+            elif type(call) == CoastCaseAST:
+                # here, we just have to walk each case and
+                # check if the then-arm contains a call
+                for c in call.conditions:
+                    if self.is_self_tail_call(name, c[1]):
+                        return True
+            elif type(call) == CoastFNCallAST:
+                # also need to check that it even IS an
+                # ident
+                if type(call.fn) == CoastIdentAST:
+                    return call.fn.identvalue == name.identvalue
+            else:
+                # we _probably_ won't have another form here,
+                # but who knows.
+                pass
+            return False
 
     def generate_freshsym_string(self, basename=None):
         n = "res"
