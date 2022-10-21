@@ -722,6 +722,17 @@ class CoastAST:
     def __str__(self):
         return self.to_coast()
 
+class CoastDeclareAST(CoastAST):
+    def __init__(self, n, t):
+        self.name = n
+        self.ntype = t
+
+    def to_coast(self, depth=0):
+        return "{0} is {1};".format(self.name, self.ntype)
+
+    def __str__(self):
+        return self.to_coast()
+
 class CoastAssignAST(CoastAST):
     def __init__(self, n, v, t=None):
         self.name = n
@@ -1023,6 +1034,11 @@ class CoastalParser:
            self.lexemes[self.current_offset].lexeme == "is":
             self.current_offset += 1
             nt = self.parse_cardinal_type()
+            if type(self.lexemes[self.current_offset]) == TokenSemiColon or \
+               self.current_offset >= len(self.lexemes):
+                self.current_offset += 1
+                name = CoastIdentAST(type(self.lexemes[name_o]), self.lexemes[name_o].lexeme)
+                return CoastDeclareAST(name, nt)
             if not self.is_assignment(self.lexemes[self.current_offset]):
                 raise CoastalParseError("`parse_assignment` called in non-assign context after `is`",
                                         self.lexemes[self.current_offset].line)
