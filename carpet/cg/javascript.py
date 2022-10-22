@@ -847,6 +847,8 @@ class CarpetJavaScript:
             self.generate_block(ast, depth=depth+1, tail=tail)
         elif type(ast) == CoastTypeDefAST:
             self.generate_type(ast, depth=depth)
+        elif type(ast) == CoastDeclareAST:
+            print('let', self.mung_ident(ast.name))
         elif type(ast) is CoastLiteralAST and ast.littype is TokenArrayStart:
             if tail:
                 print('return ', end='')

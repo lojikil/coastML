@@ -23,6 +23,7 @@ class CarpetPython:
         self.asts = []
         self.res_ctr = 0
         parser = CoastalParser(self.src)
+        parser.load()
         self.asts = parser.parse()
         if self.compile:
             comp = Compiler.from_asts(self.src, self.asts)
@@ -898,6 +899,9 @@ class CarpetPython:
             self.generate_block(ast, depth=depth+1, tail=tail)
         elif type(ast) == CoastTypeDefAST:
             self.generate_type(ast, depth=depth)
+        elif type(ast) == CoastDeclareAST:
+            print(self.mung_ident(ast.name), ": ", end="")
+            self.generate_cardinal_type(ast.ntype)
         elif type(ast) is CoastLiteralAST and ast.littype is TokenArrayStart:
             if tail:
                 print('return ', end='')
@@ -923,6 +927,7 @@ class CarpetPython:
         # XXX really need to be more selective about these...
         print("from dataclasses import dataclass\nimport functools")
         print("import itertools\n")
+
         for ast in self.asts:
             self.generate_dispatch(ast, depth, tail=True)
             print("")

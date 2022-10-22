@@ -99,6 +99,20 @@ class Compiler:
                     else:
                         self.constructors[ctorn] = 0
                         self.functions[ctorn] = 0
+            elif type(ast) == CoastDeclareAST:
+                # XXX this supports declarations in the compiler, so we
+                # can use this for checking if a variable is known to
+                # us. *however*, we still need to track type state here
+                # and note that every declare variable is uninitialized.
+                #
+                # the alternative is that we set each declared variable to
+                # the bottom (or default value) of that type; however, that
+                # would mean mutation in languages such as OCaml would require
+                # tracking. As a note, we may not want to invert `case`
+                # assign statements for functional languages (or languages that
+                # support expression returns really; Algol68, for example)
+                self.declarations[ast.name] = ast.ntype
+                new_asts += [ast]
             elif type(ast) == CoastAssignAST:
                 # split: add functions to the function pile and add definitions just to the list
                 if self.is_callable(ast.value):
