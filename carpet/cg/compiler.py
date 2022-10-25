@@ -425,37 +425,66 @@ class Compiler:
 
         ret = None
 
+        # these are the actual parameters we need
+        # to iterate over and shadow for each
+        # invocation of the lambda
+        #
+        # XXX I was just thinking, it would be nice
+        # to make these configurable, yes, but *also*
+        # support something like PGO, where we could
+        # test if these actually make sense for the
+        # workload undercompilation
+        params = ast.parameters
+
         if type(ast) == CoastFNAST:
-            ret = CoastFNAST(None, None)
+            ret = CoastFNAST(ast.parameters, ast.body, ast.types)
         elif type(ast) == CoastGNAST:
-            ret = CoastGNAST(None, None, None)
+            ret = CoastGNAST(ast.name, ast.parameters, ast.body, ast.types)
         elif type(ast) == CoastFCAST:
-            ret = CoastFCAST(None, None)
+            ret = CoastFCAST(ast.parameters, ast.conditions, ast.types)
 
+        ret.tail_call = ast.tail_call
+        ret.self_tail_call = ast.self_tail_call
 
+        # here, we need to do a few things:
+        #
+        # . iterate over the spine of the lambda
+        # . if we have a:
+        # .. block
+        # .. case
+        # .. we rewrite any self-tail call therein
+        # . if we have a self-tail call, we rewrite that as well
+        # . just copy all other forms
+        #
+        # rewriting takes the form of setting the shadow params
+        # to be the value that the actual params would take on
+        # and then setting the actual parameters to the values
+        # of the shadow ones. Basically, we setup a bunch of
+        # temporary values for the top-level parameters, in order
+        # to be able to reference them without issue
         while len(work_queue) > 0:
-            if self.is_callable(call):
-                return self.is_self_tail_call(name, call.body)
-            elif type(call) == CoastBlockAST:
+            if type(call) == CoastBlockAST:
                 # walk call.progn and check the last
                 # member
-                return self.is_self_tail_call(name, call.progn[-1])
+                pass
             elif type(call) == CoastCaseAST:
                 # here, we just have to walk each case and
                 # check if the then-arm contains a call
                 for c in call.conditions:
                     if self.is_self_tail_call(name, c[1]):
-                        return True
+                        pass
             elif type(call) == CoastFNCallAST:
                 # also need to check that it even IS an
                 # ident
                 if type(call.fn) == CoastIdentAST:
-                    return call.fn.identvalue == name.identvalue
+                    if call.fn.identvalue == name.identvalue:
+                        pass
             else:
                 # we _probably_ won't have another form here,
                 # but who knows.
                 pass
-            return False
+
+        return ret
 
     def generate_freshsym_string(self, basename=None):
         n = "res"
