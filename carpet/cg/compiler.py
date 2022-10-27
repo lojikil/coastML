@@ -334,6 +334,12 @@ class Compiler:
         varval = ast.name
         case = ast.value
         newcase = CoastCaseAST(case.initial_condition, case.conditions)
+        # XXX we need to change this to a declare of the variable
+        # and then thread assigns throughout below; that way, the
+        # code generator can just focus on letting assigns be an
+        # assignment, at least here. It's definitely going to be
+        # interesting for threaded variables, and top level ones
+        # will likely still be a full bind
         for cndidx in range(0, len(case.conditions)):
             cnd = case.conditions[cndidx]
             test = cnd[0]
