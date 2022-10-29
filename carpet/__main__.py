@@ -9,7 +9,7 @@ if __name__ == "__main__":
         print("compile - like load, but run the compiler too (useful to see what transforms are applied)")
         print("python - dump python from a coastML file")
         print("javascript - dump javascript from a coastML file")
-        print("note, the last two will be merged at some point")
+        print("pynterp - use the Python compiler as an interpreter")
         sys.exit(0)
 
     if sys.argv[1] == "load":

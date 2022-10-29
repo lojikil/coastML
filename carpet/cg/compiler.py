@@ -410,7 +410,34 @@ class Compiler:
 
         self.generate_call(newast, depth=depth, tail=tail)
 
-    def generate_shadows_self_tail_call(self, ast):
+    def walk_shadow_params(self, name, params, structure):
+        if type(structure) == CoastCaseAST:
+            pass
+        elif type(structure) == CoastBlockAST:
+            pass
+        return []
+
+    def shadow_name(self, name):
+        return CoastIdentAST(name.identtype, "shadow_" + name.identvalue)
+
+    def shadow_params(self, params, call_ast):
+        # ok, here we should have a call that
+        # we can rewrite...
+
+        ret = []
+
+        if len(call_ast.data) != len(params):
+            raise CoastCompileError("incorrect arity for {0} in shadowing!".format(call.ast.fn))
+
+        for idx in range(0, len(params)):
+            ret.append(CoastAssignAST(self.shadow_name(params[idx]), call_ast.data[idx]))
+
+        for idx in range(0, len(params)):
+            ret.append(CoastAssignAST(params[idx], self.shadow_name(params[idx])))
+
+        return ret
+
+    def generate_shadows_self_tail_call(self, name, ast):
         # ok, so we know we have a self-TC lambda here,
         # but we don't _really_ want to insert other pseudo
         # instructions, and we don't want to rely on the
@@ -440,7 +467,6 @@ class Compiler:
         # support something like PGO, where we could
         # test if these actually make sense for the
         # workload undercompilation
-        params = ast.parameters
 
         if type(ast) == CoastFNAST:
             ret = CoastFNAST(ast.parameters, ast.body, ast.types)
@@ -468,28 +494,29 @@ class Compiler:
         # of the shadow ones. Basically, we setup a bunch of
         # temporary values for the top-level parameters, in order
         # to be able to reference them without issue
-        while len(work_queue) > 0:
-            if type(call) == CoastBlockAST:
-                # walk call.progn and check the last
-                # member
-                pass
-            elif type(call) == CoastCaseAST:
-                # here, we just have to walk each case and
-                # check if the then-arm contains a call
-                for c in call.conditions:
-                    if self.is_self_tail_call(name, c[1]):
-                        pass
-            elif type(call) == CoastFNCallAST:
-                # also need to check that it even IS an
-                # ident
-                if type(call.fn) == CoastIdentAST:
-                    if call.fn.identvalue == name.identvalue:
-                        pass
-            else:
-                # we _probably_ won't have another form here,
-                # but who knows.
-                pass
 
+        # this is somewhere that I would turn off the compiler and just
+        # write the coastML code hahaha
+        # but really, I need to make a FFI for languages so that I can
+        # tie constructors to classes
+
+        # remove the final member
+        tail = ret.body.progn.pop()
+
+        if type(tail) == CoastCaseAST:
+            # walk the spine of the case statement,
+            # checking each then-body for it's tail
+            result = self.walk_shadow_params(name, ret.parameters, tail)
+        elif type(tail) == CoastFNCallAST:
+            # XXX conflicted about this one; we could try to reify
+            # CoastOpCallAST here, to deal with `|>` and `$`, but
+            # it means we will reify some operations in the compiler...
+            if tail.fn.identvalue == name:
+                result = self.shadow_params(ret.parameters, tail)
+        elif type(tail) == CoastBlockAST:
+            result = self.walk_shadow_params(name, ret.parameters, tail)
+
+        ret.body.progn += result
         return ret
 
     def generate_freshsym_string(self, basename=None):
