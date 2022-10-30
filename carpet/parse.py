@@ -425,6 +425,18 @@ class TokenOperator(Token):
     def __str__(self):
         return self.lexeme
 
+class TokenOperatorLiteral(Token):
+    def __init__(self, c, l, o):
+        self.lexeme = c
+        self.line = l
+        self.offset = o
+
+    def __repr__(self):
+        return "TokenOperatorLiteral({0})".format(self.lexeme)
+
+    def __str__(self):
+        return self.lexeme
+
 class Lex:
     def __init__(self, src=None, offset=0, line=0):
         self.src = src
@@ -540,7 +552,7 @@ class Lex:
             no = o + 1
             if no >= len(self.src):
                 self.offset = no
-                return TokenOp(self.src[o:no], self.line, self.offset)
+                return TokenOperator(self.src[o:no], self.line, self.offset)
             elif self.src[no] in '0123456789':
                 no += 1
                 floatflag = False
@@ -573,6 +585,17 @@ class Lex:
                 return TokenError("Incorrectly formatted character", self.line, self.offset)
             self.offset = no + 2
             return TokenChar(self.src[o + 1:no + 1], self.line, self.offset)
+        elif self.src[o] == '`':
+            # SML-style `op`, useful in passing
+            # operators around or defining new ones
+            no = o + 1
+            while no < len(self.src) and \
+                  self.src[no] != '`' and \
+                  self.src[no] in "!@#$%^&*-_+=<>?|":
+                no += 1
+            no += 1
+            self.offset = no
+            return TokenOperatorLiteral(self.src[o:no], self.line, o)
         elif self.src[o] == '"':
             no = o + 1
             while no < len(self.src) and self.src[no] != '"':
