@@ -118,7 +118,6 @@ class Compiler:
                 if self.is_callable(ast.value):
                     # ok, here we have a function (an `fn`, a `fc` or a `gn`)
                     # that we want to record as a callable
-                    new_asts += [ast]
                     # ok, and so we want to store the name and the arity of
                     # functions; we probably also should store type information
                     # but for now we can just store arity, and the typing pass
@@ -127,9 +126,14 @@ class Compiler:
                     # really, we should `sub_compile` here, but for now
                     # I just want to get functions checked at the top level
                     #
-                    # XXX we also need to check if it's self-TCO as well...
+                    # XXX we need to check if the user wants us to disable self-TCO
                     if self.is_self_tail_call(ast.name, ast.value):
                         ast.value.self_tail_call = True
+                        shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
+                        new_assign = CoastAssignAST(ast.name, shadowed_fn)
+                        new_asts += [new_assign]
+                    else:
+                        new_asts += [ast]
                     #self.sub_compile(ast.value)
                 elif type(ast.value) == CoastCaseAST:
                     # we need to invert `case` forms
