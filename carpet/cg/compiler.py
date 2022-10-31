@@ -411,11 +411,33 @@ class Compiler:
         self.generate_call(newast, depth=depth, tail=tail)
 
     def walk_shadow_params(self, name, params, structure):
+        ret = []
         if type(structure) == CoastCaseAST:
-            pass
+            newcase = CoastCaseAST(structure.initial_condition, None)
+            new_conditions = []
+            for c in structure.conditions:
+                cnd = c[0]
+                then = self.walk_shadow_params(name, params, c[1])
+                # why do we use `then[0]` below? because this is
+                # a `case` form, and we know that `walk_shadow_params`
+                # will return a block here, regardless of what's in
+                # that block
+                new_conditions.append([cnd, then[0]])
+            newcase.conditions = new_conditions
+            ret = [newcase]
         elif type(structure) == CoastBlockAST:
-            pass
-        return []
+            newblock = CoastBlockAST(None)
+            tail = structure.progn[-1]
+            newblock.progn = structure.progn[0:-1] + self.walk_shadow_params(name, params, tail)
+            ret = [newblock]
+        elif type(structure) == CoastFNCallAST:
+            if structure.fn.identvalue == name.identvalue:
+                ret = self.shadow_params(params, structure)
+            else:
+                ret = [structure]
+        else:
+            ret = [structure]
+        return ret
 
     def shadow_name(self, name):
         return CoastIdentAST(name.identtype, "shadow_" + name.identvalue)
@@ -426,15 +448,23 @@ class Compiler:
 
         ret = []
 
+        # shadow all params at once, rather than generating new
+        # CoastIdentAST objects for each location
+        shadows = [self.shadow_name(x) for x in params]
+
         if len(call_ast.data) != len(params):
             raise CoastCompileError("incorrect arity for {0} in shadowing!".format(call.ast.fn))
 
         for idx in range(0, len(params)):
-            ret.append(CoastAssignAST(self.shadow_name(params[idx]), call_ast.data[idx]))
+            ret.append(CoastAssignAST(shadows[idx], call_ast.data[idx]))
 
         for idx in range(0, len(params)):
-            ret.append(CoastAssignAST(params[idx], self.shadow_name(params[idx])))
-
+            ret.append(CoastAssignAST(params[idx], shadows[idx]))
+        # XXX we actually need a way to signal to the code generator that
+        # these values MUST NOT be prepended with a `return` there. I am
+        # thinking we can add one final thing to `ret`, which would be a
+        # "call" to `recurse` (or `%shadow-recurse`), which would be used
+        # to signal that this is a self-tail call that has been shadowed
         return ret
 
     def generate_shadows_self_tail_call(self, name, ast):
@@ -451,12 +481,7 @@ class Compiler:
         # . remove the call
         # . return the new AST
 
-        # this should hold the current idx and AST
-        work_queue = []
-        idx = 0
-        tast = None
-
-        ret = None
+        ret:CoastAST
 
         # these are the actual parameters we need
         # to iterate over and shadow for each
@@ -503,6 +528,8 @@ class Compiler:
         # remove the final member
         tail = ret.body.progn.pop()
 
+        result:list
+
         if type(tail) == CoastCaseAST:
             # walk the spine of the case statement,
             # checking each then-body for it's tail
@@ -511,10 +538,14 @@ class Compiler:
             # XXX conflicted about this one; we could try to reify
             # CoastOpCallAST here, to deal with `|>` and `$`, but
             # it means we will reify some operations in the compiler...
-            if tail.fn.identvalue == name:
+            if tail.fn.identvalue == name.identvalue:
                 result = self.shadow_params(ret.parameters, tail)
+            else:
+                result = [tail]
         elif type(tail) == CoastBlockAST:
             result = self.walk_shadow_params(name, ret.parameters, tail)
+        else:
+            result = [tail]
 
         ret.body.progn += result
         return ret
