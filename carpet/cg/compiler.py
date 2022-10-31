@@ -460,11 +460,13 @@ class Compiler:
 
         for idx in range(0, len(params)):
             ret.append(CoastAssignAST(params[idx], shadows[idx]))
-        # XXX we actually need a way to signal to the code generator that
+
+        # NOTE we actually need a way to signal to the code generator that
         # these values MUST NOT be prepended with a `return` there. I am
         # thinking we can add one final thing to `ret`, which would be a
         # "call" to `recurse` (or `%shadow-recurse`), which would be used
         # to signal that this is a self-tail call that has been shadowed
+        ret.append(CoastFNCallAST(CoastIdentAST.make_ident("%shadow-recurse"), []))
         return ret
 
     def generate_shadows_self_tail_call(self, name, ast):

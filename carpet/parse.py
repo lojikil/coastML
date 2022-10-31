@@ -940,6 +940,10 @@ class CoastIdentAST(CoastAST):
         self.identtype = identtype
         self.identvalue = identval
 
+    @classmethod
+    def make_ident(cls, name):
+        return CoastIdentAST(TokenIdent, name)
+
     def to_coast(self, depth=0):
         # switch on the type...
         # same note as the above: no real
