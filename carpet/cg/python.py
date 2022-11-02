@@ -116,9 +116,10 @@ class CarpetPython:
         n = self.mung_ident(fn.name.identvalue)
         v = fn.value
         params = ", ".join([x.to_coast() for x in v.parameters])
+        self.generate_indent(depth)
         print("def {0}({1}):".format(n, params))
         if v.self_tail_call:
-            self.generate_self_tail_call(n, v)
+            self.generate_self_tail_call(n, v, depth=depth+1)
         else:
             self.generate_block(v.body, tail=tail, depth=depth+1)
 
@@ -177,7 +178,38 @@ class CarpetPython:
         # and then use normal functions to do the rest,
         # since in theory the compiler has taken care
         # of the various rewrites for us
-        pass
+
+        self.generate_indent(depth)
+
+        # XXX it would be nice to remove single-arm `case`
+        # forms here; for example:
+        #
+        # [source]
+        # ----
+        # case n
+        # | (n > 0) { ... }
+        # | _ { ... }
+        # esac
+        # ----
+        #
+        # this could have some loop motion:
+        #
+        # [source]
+        # ----
+        # while (n > 0) {
+        #     # do the `n > 0` then here
+        # }
+        # # do the `_` then body here
+        # ----
+        #
+        # this would simplify many of the checks and make
+        # the resulting code look quite nice
+
+        print('while True:')
+
+        # we need to actually just add `return` for all returns
+        # and non-self-tail-calls, and elide anything else
+        self.generate_block(v.block, tail=True, depth=depth+1)
 
     def generate_type(self, t, depth=0, tail=False):
         # this is going to be interesting; basically, we
