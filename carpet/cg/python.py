@@ -150,8 +150,15 @@ class CarpetPython:
         o = 0
         for b in block.progn:
             if tail and o == (l - 1):
-                self.generate_indent(depth)
-                self.generate_dispatch(b, depth=depth, tail=True)
+                # XXX this is a bit of a hack, but works
+                # for now...
+                if type(b) == CoastFNCallAST and \
+                   type(b.fn) == CoastIdentAST and \
+                   b.fn.identvalue == "%shadow-recurse":
+                    pass
+                else:
+                    self.generate_indent(depth)
+                    self.generate_dispatch(b, depth=depth, tail=True)
             else:
                 self.generate_indent(depth)
                 self.generate_dispatch(b, depth=depth)
@@ -209,7 +216,7 @@ class CarpetPython:
 
         # we need to actually just add `return` for all returns
         # and non-self-tail-calls, and elide anything else
-        self.generate_block(v.block, tail=True, depth=depth+1)
+        self.generate_block(val.body, tail=True, depth=depth+1)
 
     def generate_type(self, t, depth=0, tail=False):
         # this is going to be interesting; basically, we
