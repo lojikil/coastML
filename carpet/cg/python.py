@@ -761,7 +761,6 @@ class CarpetPython:
                        type(test.fn) is CoastIdentAST and \
                        test.fn.identtype is TokenNSADT:
                         bindings = self.generate_constructor_case(resv, test)
-                        ctr += 1
                     else:
                         self.generate_call(test, depth=1, tail=False)
 
@@ -772,6 +771,7 @@ class CarpetPython:
                             self.generate_indent(depth + 1)
                             print("{0} = {1}".format(binding[0], binding[1]))
 
+                    ctr += 1
                     self.generate_block(then, depth=depth + 1, tail=tail)
                 else:
                     if ctr > 0:
