@@ -1,0 +1,59 @@
+# the first coastline file
+# these define the type signatures of whatever
+# is declared herein; like an `mli` file for OCaml
+
+array-length is function[array[A] int];
+array-get is  function[array[A] int A];
+array-set! is function[array[A] int unit];
+array-make is function[A int array[A]];
+array-init is function[A int array[A]];
+array-make-matrix is function[A int int array[array[A]]];
+array-append is function[array[A] array[A] array[A]];
+array-append! is function[array[A] array[A] unit];
+array-concat is function[array[array[A]] array[A]];
+array-concat!
+array-sub
+array-copy
+array-fill!
+array-blit!
+array->list
+list->array
+array-iter
+array-iter-while
+array-map
+array-iter-index
+array-map-index
+array-iter-until
+array-foldl
+array-foldr
+array-sort
+array-sort!
+array-stable-sort
+array-fast-sort
+string-length
+string-get
+string-make
+string-init
+string-split
+string-append
+string-join
+string-contains
+string-concat
+string-copy
+string->array
+string-iter
+string-map
+string-iter-index
+string-iter-while
+string-map-index
+string-foldl
+string-foldr
+string-iter-until
+string-sort
+compare
+char-code
+char-chr
+char-escaped
+char-lowercase
+char-uppercase
+char-compare
