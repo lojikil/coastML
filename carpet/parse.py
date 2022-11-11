@@ -511,7 +511,7 @@ class Lex:
                 return TokenOperator(self.src[o:no], self.line, self.offset)
         elif self.src[o] == '(':
             if self.src[o + 1] == ')':
-                self.offset += 2
+                self.offset += 3
                 return TokenUnit(self.line, self.offset)
             self.offset = o + 1
             return TokenCallStart(self.line, self.offset)
@@ -1032,7 +1032,8 @@ class CoastalParser:
 
     def simple_value(self, v):
         ts = [TokenChar, TokenString, TokenBin, TokenOct,
-              TokenHex, TokenInt, TokenFloat, TokenBool]
+              TokenHex, TokenInt, TokenFloat, TokenBool,
+              TokenUnit]
         for t in ts:
             if isinstance(v, t):
                 return True
@@ -1098,8 +1099,12 @@ class CoastalParser:
     def parse_simple_value(self):
         if self.simple_value(self.lexemes[self.current_offset]):
             self.current_offset += 1
+            if type(self.lexemes[self.current_offset - 1]) == TokenUnit:
+                lexeme = "()"
+            else:
+                lexeme = self.lexemes[self.current_offset - 1].lexeme
             return CoastLiteralAST(type(self.lexemes[self.current_offset - 1]),
-                                   self.lexemes[self.current_offset - 1].lexeme)
+                                   lexeme)
 
     def parse_type_array_literal(self):
         self.current_offset += 1
