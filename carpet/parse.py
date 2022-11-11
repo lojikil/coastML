@@ -1162,6 +1162,8 @@ class CoastalParser:
         # ... huh, the function call setup works for that, maybe follow
         # the same thing as there?
         while self.current_offset < len(self.lexemes):
+            # XXX need to support operator literals here... `+`+`
+            # this will be like SML...
             if self.simple_value(self.lexemes[self.current_offset]):
                 subcaptures.append(self.parse_simple_value())
             elif isinstance(self.lexemes[self.current_offset], TokenArrayStart):
@@ -1447,6 +1449,9 @@ class CoastalParser:
                 return self.parse_call()
         elif type(self.lexemes[self.current_offset]) == TokenNSADT or \
              type(self.lexemes[self.current_offset]) == TokenNSMod:
+            return self.parse_call()
+        elif type(self.lexemes[self.current_offset]) == TokenOperatorLiteral:
+            # we want to support SML-style operator literals too
             return self.parse_call()
         elif self.simple_value(self.lexemes[self.current_offset]):
             # function call or just literal...
