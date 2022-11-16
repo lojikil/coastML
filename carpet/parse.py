@@ -1043,7 +1043,7 @@ class CoastalParser:
         return isinstance(o, TokenOperator) and o.lexeme == "="
 
     def is_callable(self, c):
-        ts = [TokenIdent, TokenOperator, TokenNSMod, TokenTag, TokenNSADT]
+        ts = [TokenIdent, TokenOperator, TokenNSMod, TokenTag, TokenNSADT, TokenOperatorLiteral]
 
         for t in ts:
             if isinstance(c, t):
@@ -1438,7 +1438,8 @@ class CoastalParser:
         elif type(self.lexemes[self.current_offset]) == TokenSemiColon:
             self.current_offset += 1
             return self.sub_parse()
-        elif type(self.lexemes[self.current_offset]) == TokenIdent:
+        elif type(self.lexemes[self.current_offset]) == TokenIdent or \
+             type(self.lexemes[self.current_offset]) == TokenOperatorLiteral:
             # could be a function call or an assignment
             if self.is_assignment(self.lexemes[self.current_offset + 1]):
                 return self.parse_assignment()
@@ -1449,9 +1450,6 @@ class CoastalParser:
                 return self.parse_call()
         elif type(self.lexemes[self.current_offset]) == TokenNSADT or \
              type(self.lexemes[self.current_offset]) == TokenNSMod:
-            return self.parse_call()
-        elif type(self.lexemes[self.current_offset]) == TokenOperatorLiteral:
-            # we want to support SML-style operator literals too
             return self.parse_call()
         elif self.simple_value(self.lexemes[self.current_offset]):
             # function call or just literal...
