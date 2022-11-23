@@ -207,9 +207,137 @@ class Compiler:
         self.asts = new_asts
         return new_asts
 
-    def sub_compile(self, fn):
+    def sub_compile(self, ast, decls=None, fns=None, vars=None, mods=None, types=None):
         # iterate over the forms in `fn` to make sure that each is
         # lifted as needed and defined
+        if type(ast) == CoastTypeDefAST:
+            # we need to:
+            #
+            # . slice up all constructors and their arity
+            # . add all the types to the top level
+            new_asts += [ast]
+
+            # ok, so constructors is actually broken down
+            # as tuples of (CoastIdentAST(name), CoastLiteralList(types))
+            # so here, we need to deconstruct the pairing there and
+            # store the arity of the constructor. In theory we could
+            # store the parameters in the dict as well...
+            for ctor, ctorp in ast.constructors:
+                ctorn = "{0}.{1}".format(ast.typename, ctor)
+                if type(ctorp) == CoastLiteralAST:
+                    self.constructors[ctorn] = len(ctorp.litvalue)
+                    self.functions[ctorn] = len(ctorp.litvalue)
+                elif type(ctorp) == list:
+                    self.constructors[ctorn] = len(ctorp)
+                    self.functions[ctorn] = len(ctorp)
+                else:
+                    self.constructors[ctorn] = 0
+                    self.functions[ctorn] = 0
+        elif type(ast) == CoastDeclareAST:
+            # XXX this supports declarations in the compiler, so we
+            # can use this for checking if a variable is known to
+            # us. *however*, we still need to track type state here
+            # and note that every declare variable is uninitialized.
+            #
+            # the alternative is that we set each declared variable to
+            # the bottom (or default value) of that type; however, that
+            # would mean mutation in languages such as OCaml would require
+            # tracking. As a note, we may not want to invert `case`
+            # assign statements for functional languages (or languages that
+            # support expression returns really; Algol68, for example)
+            self.declarations[ast.name] = ast.ntype
+            new_asts += [ast]
+        elif type(ast) == CoastAssignAST:
+            # split: add functions to the function pile and add definitions just to the list
+            if self.is_callable(ast.value):
+                # ok, here we have a function (an `fn`, a `fc` or a `gn`)
+                # that we want to record as a callable
+                # ok, and so we want to store the name and the arity of
+                # functions; we probably also should store type information
+                # but for now we can just store arity, and the typing pass
+                # can do a lookup
+                self.functions[ast.name.identvalue] = len(ast.value.parameters)
+                # really, we should `sub_compile` here, but for now
+                # I just want to get functions checked at the top level
+                #
+                # XXX we need to check if the user wants us to disable self-TCO
+                if self.is_self_tail_call(ast.name, ast.value):
+                    ast.value.self_tail_call = True
+                    shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
+                    new_assign = CoastAssignAST(ast.name, shadowed_fn)
+                    new_asts += [new_assign]
+                else:
+                    new_asts += [ast]
+                #self.sub_compile(ast.value)
+            elif type(ast.value) == CoastCaseAST:
+                # we need to invert `case` forms
+                # NOTE this brings up a good point:
+                # do blocks scope? they should, but we're
+                # abusing the fact that currently they do
+                # not. Really this should generate a:
+                #
+                # . current-level declare
+                # . a `set!` form in the inversion
+                #
+                # this style was ok when it was just python
+                # but now that we're in the real compiler
+                # that is used for a range of compilers, we need
+                # to fix this
+                #
+                # TODO: fix the above
+                self.is_valid_case_exn(ast.value)
+                new_asts += [self.invert_case(ast)]
+                self.variables += ast.name.identvalue
+            else:
+                # XXX we should check for a function call here and
+                # lift `case` and the like
+                # here, we have a simple value assignment
+                new_asts += [ast]
+                self.variables += ast.name.identvalue
+        elif type(ast) == CoastCaseAST:
+            # here we have to:
+            #
+            # . [x] check if the condition is a call that requires a lift
+            # . [x] check if all cases make syntactic sense
+            self.is_valid_case_exn(ast)
+            if type(ast.initial_condition) == CoastFNCallAST or \
+               type(ast.initial_condition) == CoastOpCallAST:
+                (sub_ic, sub_ic_newast) = self.lift_call_with_case(ast.initial_condition)
+                # ok, so we either have:
+                #
+                # . a list of new bindings for the condition OR
+                # . an empty list
+                #
+                # in the case of the former, we need to build a new
+                # `case` form and return the prepended list of forms
+                nc = CoastCaseAST(sub_ic_newast, ast.conditions)
+                new_asts += sub_ic
+                new_asts += [nc]
+            else:
+                new_asts += [ast]
+        elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
+            (lifted, newcall) = self.lift_call_with_case(ast)
+            new_asts += lifted
+            new_asts += [newcall]
+            # NOTE would be really nice to make recommendations here
+            # for example, if you try to call "ripnt", we could recommend
+            # "print"; need to port my Levenshtein code from Reason...
+            if type(ast) == CoastFNCallAST:
+                # we have a function; check that it's a function we know
+                # about, such as a basis function or one that the user has
+                # defined
+                if not self.is_basis_fn(ast.fn) and ast.fn.identvalue not in self.functions:
+                    raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.fn.identvalue), 0)
+            else:
+                # we have an operator, check if it's one we know about
+                pass
+
+            # XXX and here we need to check all variables to see if we
+            # know about those as well...
+        else:
+            # here, we need to iterate over all the members anyway, and make sure they're
+            # all defined...
+            pass
         return fn
 
     def is_callable(self, fn):
