@@ -52,3 +52,39 @@ class SpaghettiStack:
 
     def __unicode__(self):
         return unicode(repr(self.frames))
+
+    # NOTE these return ALL frame values
+    # I was thinking there could be useful
+    # versions that only return _scoped_ items
+    # here. You could easily rebuild the dict
+    # of what the environment looks like at
+    # any given time
+    # XXX add a `scoped=True` to `values` and
+    # `items` so you can get *only* those values
+    # that the environment would see at that time
+    # this can help with debugging what `__getitem__`
+    # is seeing for a particular stack frame
+    def keys(self):
+        ret = set()
+        for fidx in range(len(self.frames) - 1, -1, -1):
+            frame = self.frames[fidx]
+            for key in frame.keys():
+                ret.add(key)
+        return list(ret)
+
+    def values(self):
+        ret = []
+        for fidx in range(len(self.frames) - 1, -1, -1):
+            frame = self.frames[fidx]
+            for value in frame.values():
+                ret.append(value)
+        return ret
+
+    def items(self):
+        ret = []
+        for fidx in range(len(self.frames) - 1, -1, -1):
+            frame = self.frames[fidx]
+            ret.append(frame.items())
+        return ret
+
+
