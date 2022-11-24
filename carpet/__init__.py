@@ -26,3 +26,4 @@ from .parse import *
 from .cg.python import CarpetPython
 from .cg.javascript import CarpetJavaScript
 from .cg.compiler import Compiler
+from .util.spaghetti import SpaghettiStack

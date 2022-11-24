@@ -11,6 +11,7 @@
 #@(#) version)
 
 from ..parse import *
+from ..util.spaghetti import SpaghettiStack
 
 
 class CoastalCompilerError(Exception):
