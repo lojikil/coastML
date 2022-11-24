@@ -207,7 +207,8 @@ class Compiler:
         self.asts = new_asts
         return new_asts
 
-    def sub_compile(self, ast, decls=None, fns=None, vars=None, mods=None, types=None):
+    def sub_compile(self, ast, decls=None, fns=None, scoped_vars=None,
+                    mods=None, types=None, ctors=None):
         # iterate over the forms in `fn` to make sure that each is
         # lifted as needed and defined
         if type(ast) == CoastTypeDefAST:
