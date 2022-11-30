@@ -212,6 +212,7 @@ class Compiler:
                     mods=None, types=None, ctors=None):
         # iterate over the forms in `fn` to make sure that each is
         # lifted as needed and defined
+        new_asts = []
         if type(ast) == CoastTypeDefAST:
             # we need to:
             #
@@ -227,14 +228,14 @@ class Compiler:
             for ctor, ctorp in ast.constructors:
                 ctorn = "{0}.{1}".format(ast.typename, ctor)
                 if type(ctorp) == CoastLiteralAST:
-                    self.constructors[ctorn] = len(ctorp.litvalue)
-                    self.functions[ctorn] = len(ctorp.litvalue)
+                    ctors[ctorn] = len(ctorp.litvalue)
+                    fns[ctorn] = len(ctorp.litvalue)
                 elif type(ctorp) == list:
-                    self.constructors[ctorn] = len(ctorp)
-                    self.functions[ctorn] = len(ctorp)
+                    ctors[ctorn] = len(ctorp)
+                    fns[ctorn] = len(ctorp)
                 else:
-                    self.constructors[ctorn] = 0
-                    self.functions[ctorn] = 0
+                    ctors[ctorn] = 0
+                    fns[ctorn] = 0
         elif type(ast) == CoastDeclareAST:
             # XXX this supports declarations in the compiler, so we
             # can use this for checking if a variable is known to
@@ -258,7 +259,7 @@ class Compiler:
                 # functions; we probably also should store type information
                 # but for now we can just store arity, and the typing pass
                 # can do a lookup
-                self.functions[ast.name.identvalue] = len(ast.value.parameters)
+                fns[ast.name.identvalue] = len(ast.value.parameters)
                 # really, we should `sub_compile` here, but for now
                 # I just want to get functions checked at the top level
                 #
@@ -270,7 +271,16 @@ class Compiler:
                     new_asts += [new_assign]
                 else:
                     new_asts += [ast]
-                #self.sub_compile(ast.value)
+                # XXX interesting point: do we do this here, and potentially modify the
+                # TCO, or above, and then run TCO on it? could be interesting... I need
+                # to play with this more
+                #
+                # NOTE Thinking more about it, I'm likely goig to redo this whole section
+                # here; I also wonder if I can automatically "copy" the spaghetti stack
+                # on iteration...
+                tmp = self.sub_compile(ast.value, decls.copy(), fns.copy(),
+                                       scoped_vars.copy(), mods.copy(),
+                                       types.copy(), ctors.copy())
             elif type(ast.value) == CoastCaseAST:
                 # we need to invert `case` forms
                 # NOTE this brings up a good point:
