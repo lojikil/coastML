@@ -248,7 +248,7 @@ class Compiler:
             # tracking. As a note, we may not want to invert `case`
             # assign statements for functional languages (or languages that
             # support expression returns really; Algol68, for example)
-            self.declarations[ast.name] = ast.ntype
+            decls[ast.name] = ast.ntype
             new_asts += [ast]
         elif type(ast) == CoastAssignAST:
             # split: add functions to the function pile and add definitions just to the list
@@ -267,20 +267,23 @@ class Compiler:
                 if self.is_self_tail_call(ast.name, ast.value):
                     ast.value.self_tail_call = True
                     shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
-                    new_assign = CoastAssignAST(ast.name, shadowed_fn)
+                    tmp = self.sub_compile(shadowed_fn, decls.copy(),
+                                           fns.copy(), scoped_vas.copy(),
+                                           mods.copy(), types.copy(),
+                                           ctors.copy())
+                    new_assign = CoastAssignAST(ast.name, tmp[0])
                     new_asts += [new_assign]
                 else:
-                    new_asts += [ast]
+                    tmp = self.sub_compile(ast.value, decls.copy(),
+                                           fns.copy(), scoped_vas.copy(),
+                                           mods.copy(), types.copy(),
+                                           ctors.copy())
+                new_assign = CoastAssignAST(ast.name, tmp[0])
+                new_asts += [new_assign]
                 # XXX interesting point: do we do this here, and potentially modify the
                 # TCO, or above, and then run TCO on it? could be interesting... I need
                 # to play with this more
                 #
-                # NOTE Thinking more about it, I'm likely goig to redo this whole section
-                # here; I also wonder if I can automatically "copy" the spaghetti stack
-                # on iteration...
-                tmp = self.sub_compile(ast.value, decls.copy(), fns.copy(),
-                                       scoped_vars.copy(), mods.copy(),
-                                       types.copy(), ctors.copy())
             elif type(ast.value) == CoastCaseAST:
                 # we need to invert `case` forms
                 # NOTE this brings up a good point:
@@ -298,7 +301,12 @@ class Compiler:
                 #
                 # TODO: fix the above
                 self.is_valid_case_exn(ast.value)
-                new_asts += [self.invert_case(ast)]
+
+                # `case` forms themselves do not introduce new scopes,
+                # but the individual blocks they contain do
+                tmp = self.sub_compile(ast.value, decls, fns, scoped_vars,
+                                       mods, types, ctors)
+                new_asts += [self.invert_case(tmp)]
                 self.variables += ast.name.identvalue
             else:
                 # XXX we should check for a function call here and
