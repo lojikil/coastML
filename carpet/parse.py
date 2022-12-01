@@ -978,7 +978,7 @@ class CoastTypeDefAST(CoastAST):
         header = "type {0}".format(self.typename)
 
         if self.types is not None:
-            types = " ".join([x.to_coast for x in self.types])
+            types = " ".join([x.to_coast() for x in self.types.litvalue])
             header = "{0} [{1}]".format(header, types)
 
         ctors = []
@@ -1354,7 +1354,7 @@ class CoastalParser:
 
         self.current_offset += 1
         if type(self.lexemes[self.current_offset]) == TokenArrayStart:
-            types = self.parse_array_literal()
+            types = self.parse_type_array_literal()
         else:
             types = None
 
