@@ -57,6 +57,16 @@ test-string-while = fn x y {
 
 test-string-while filter print;
 
+# XXX this currently generates dataclasses
+# with typed parameter names; we have two
+# real choices here for when we lower to
+# Python:
+#
+# . use `typing.Any` instead of the parameterized type
+# . monomorphize types
+#
+# I think we should give users the options in compiler
+# flags to handle it how they'd like...
 type Result[A B]
 | Ok is [A]
 | Err is [B]
@@ -72,4 +82,4 @@ res_or_err = fn x {
 
 (res_or_err 10) |> print;
 (res_or_err 11) |> print;
-(res_or_err 12) |> print;
+(res_or_err 12) |> print
