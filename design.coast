@@ -1,0 +1,74 @@
+# very simple ML dialect
+# meant to mimic Yeti, but
+# be smaller, and compile
+# to other languages really
+# easily. Takes ideas from
+# carML as well
+
+foo = fn x y {
+    # functions are just named bindings
+    # there's no other real need for
+    # syntax
+    case x
+        | 10 { print_endline "ok, x is 10" }
+        | 11 { print_endline "ok, x is 11" }
+        | (x >= y) { print_endline "ok, x is >= y" }
+        | _ { print_endline "oh no, x is none of the above" }
+    esac    
+}
+
+foo 10 5;
+foo 20 5;
+foo 1 5;
+
+# of course, we don't always need to use fn/case...
+# we could just combine them
+foo! = fc x y
+| 10 { print_endline "ok, x is 10" }
+| 11 { print_endline "ok, x is 11" }
+| (x >= y) { print_endline "ok, x is >= y" }
+| _ { print_endline "oh no, x is none of the above" }
+cf
+
+foo! 10 5;
+foo! 20 5;
+foo! 1 5;
+
+# no need to name them in fc however...
+# really should only work with 1 parameter...
+# this has gotten me thinking... do we need to
+# do name bindings? Can we just have special
+# variables, just like tuple accessors?
+# for example, `x` below could be `$1`...
+# very perl-like for sure, but interesting
+foo$ = fc
+| 10 { print_endline "10" }
+| 11 { print_endline "11" }
+| (x < 10) { print_endline "x is less than 10..." }
+| _ { print_endline "x is greater than 11..." }
+cf
+
+foo$ 10;
+foo$ 20;
+foo$ 1;
+
+# algebraic data types are nice, let's do those:
+type Foo[A B]
+| Result is [A]
+| Error is [B]
+epyt
+
+bar = fc x
+| 10 { Foo.Result (x + 10) }
+| _ { Foo.Error x } 
+fc
+
+# like carML, ADT constructors are namespaced
+# also like carML, we have () and $(), which is
+# cut/special application
+
+foo10 = $(foo _1 10)
+foo20 = $(foo _1 20)
+
+# we can use these just like functions; results aren't
+# memoized however
