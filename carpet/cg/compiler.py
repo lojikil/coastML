@@ -11,7 +11,7 @@
 #@(#) version)
 
 from ..parse import *
-from ..util.spaghetti import SpaghettiStack
+from ..util.spaghetti import SpaghettiStack, EnvironmentFrame
 
 
 class CoastalCompilerError(Exception):
@@ -45,6 +45,12 @@ class Compiler:
         self.constructors = {}
         self.modules = {}
         self.import_path = []
+        self.environment = EnvironmentFrame(self.declarations,
+                                            self.variables,
+                                            self.functions,
+                                            self.types,
+                                            self.constructors,
+                                            self.modules)
         self.res_ctr = 0
 
     @staticmethod

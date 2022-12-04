@@ -87,4 +87,26 @@ class SpaghettiStack:
             ret.append(frame.items())
         return ret
 
+# Just a simple helper to model how we actually use SpaghettiStacks in code really
+# Also makes it easier when calling the sub-compiler, because instead of passing in
+# 6 things that need to have their `copy` method called, we just pass in one thing
+# that co-ordinates the whole affair
+class EnvironmentFrame:
+    def __init__(self, declarations, variables, functions, types, constructors, modules):
+        self.declarations = SpaghettiStack(declarations)
+        self.variables = SpaghettiStack(variables)
+        self.functions = SpaghettiStack(functions)
+        self.types = SpaghettiStack(types)
+        self.constructors = SpaghettiStack(constructors)
+        self.modules = SpaghettiStack(modules)
+        self.depth = 0
 
+    def copy():
+        ret = EnvironmentFrame(self.declarations.copy(),
+                               self.variables.copy(),
+                               self.functions.copy(),
+                               self.types.copy(),
+                               self.constructors.copy(),
+                               self.modules.copy())
+        ret.depth = self.depth + 1
+        return ret
