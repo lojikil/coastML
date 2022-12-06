@@ -214,8 +214,7 @@ class Compiler:
         self.asts = new_asts
         return new_asts
 
-    def sub_compile(self, ast, decls=None, fns=None, scoped_vars=None,
-                    mods=None, types=None, ctors=None):
+    def sub_compile(self, ast, env=None):
         # iterate over the forms in `fn` to make sure that each is
         # lifted as needed and defined
         new_asts = []
@@ -273,17 +272,11 @@ class Compiler:
                 if self.is_self_tail_call(ast.name, ast.value):
                     ast.value.self_tail_call = True
                     shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
-                    tmp = self.sub_compile(shadowed_fn, decls.copy(),
-                                           fns.copy(), scoped_vas.copy(),
-                                           mods.copy(), types.copy(),
-                                           ctors.copy())
+                    tmp = self.sub_compile(shadowed_fn, env.copy())
                     new_assign = CoastAssignAST(ast.name, tmp[0])
                     new_asts += [new_assign]
                 else:
-                    tmp = self.sub_compile(ast.value, decls.copy(),
-                                           fns.copy(), scoped_vas.copy(),
-                                           mods.copy(), types.copy(),
-                                           ctors.copy())
+                    tmp = self.sub_compile(ast.value, env.copy())
                 new_assign = CoastAssignAST(ast.name, tmp[0])
                 new_asts += [new_assign]
                 # XXX interesting point: do we do this here, and potentially modify the
@@ -310,8 +303,7 @@ class Compiler:
 
                 # `case` forms themselves do not introduce new scopes,
                 # but the individual blocks they contain do
-                tmp = self.sub_compile(ast.value, decls, fns, scoped_vars,
-                                       mods, types, ctors)
+                tmp = self.sub_compile(ast.value, env)
                 new_asts += [self.invert_case(tmp)]
                 self.variables += ast.name.identvalue
             else:
