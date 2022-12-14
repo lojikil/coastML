@@ -233,14 +233,14 @@ class Compiler:
             for ctor, ctorp in ast.constructors:
                 ctorn = "{0}.{1}".format(ast.typename, ctor)
                 if type(ctorp) == CoastLiteralAST:
-                    ctors[ctorn] = len(ctorp.litvalue)
-                    fns[ctorn] = len(ctorp.litvalue)
+                    env.constructors[ctorn] = len(ctorp.litvalue)
+                    env.functions[ctorn] = len(ctorp.litvalue)
                 elif type(ctorp) == list:
-                    ctors[ctorn] = len(ctorp)
-                    fns[ctorn] = len(ctorp)
+                    env.constructors[ctorn] = len(ctorp)
+                    env.functions[ctorn] = len(ctorp)
                 else:
-                    ctors[ctorn] = 0
-                    fns[ctorn] = 0
+                    env.constructors[ctorn] = 0
+                    env.functions[ctorn] = 0
         elif type(ast) == CoastDeclareAST:
             # XXX this supports declarations in the compiler, so we
             # can use this for checking if a variable is known to
@@ -253,7 +253,7 @@ class Compiler:
             # tracking. As a note, we may not want to invert `case`
             # assign statements for functional languages (or languages that
             # support expression returns really; Algol68, for example)
-            decls[ast.name] = ast.ntype
+            env.declarations[ast.name] = ast.ntype
             new_asts += [ast]
         elif type(ast) == CoastAssignAST:
             # split: add functions to the function pile and add definitions just to the list
@@ -264,7 +264,7 @@ class Compiler:
                 # functions; we probably also should store type information
                 # but for now we can just store arity, and the typing pass
                 # can do a lookup
-                fns[ast.name.identvalue] = len(ast.value.parameters)
+                env.functions[ast.name.identvalue] = len(ast.value.parameters)
                 # really, we should `sub_compile` here, but for now
                 # I just want to get functions checked at the top level
                 #
@@ -305,13 +305,13 @@ class Compiler:
                 # but the individual blocks they contain do
                 tmp = self.sub_compile(ast.value, env)
                 new_asts += [self.invert_case(tmp)]
-                self.variables += ast.name.identvalue
+                env.variables += ast.name.identvalue
             else:
                 # XXX we should check for a function call here and
                 # lift `case` and the like
                 # here, we have a simple value assignment
                 new_asts += [ast]
-                self.variables += ast.name.identvalue
+                env.variables += ast.name.identvalue
         elif type(ast) == CoastCaseAST:
             # here we have to:
             #
@@ -330,9 +330,18 @@ class Compiler:
                 # `case` form and return the prepended list of forms
                 nc = CoastCaseAST(sub_ic_newast, ast.conditions)
                 new_asts += sub_ic
-                new_asts += [nc]
+                res = nc
             else:
-                new_asts += [ast]
+                res = [ast]
+
+            new_conditions = []
+            for cnd in res.conditions:
+                [pred, then] = cnd
+                new_then = self.sub_compile(then, env.copy())
+                new_conditions.append([cnd, new_then])
+
+            res.conditions = new_conditions
+            new_asts += [res]
         elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
             (lifted, newcall) = self.lift_call_with_case(ast)
             new_asts += lifted
@@ -344,8 +353,9 @@ class Compiler:
                 # we have a function; check that it's a function we know
                 # about, such as a basis function or one that the user has
                 # defined
-                if not self.is_basis_fn(ast.fn) and ast.fn.identvalue not in self.functions:
+                if not self.is_basis_fn(ast.fn) and ast.fn.identvalue not in env.functions:
                     raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.fn.identvalue), 0)
+                # XXX 14DEC2022 ok and next we have to iterate over the data...
             else:
                 # we have an operator, check if it's one we know about
                 pass
@@ -356,7 +366,7 @@ class Compiler:
             # here, we need to iterate over all the members anyway, and make sure they're
             # all defined...
             pass
-        return fn
+        return new_asts
 
     def is_callable(self, fn):
         return type(fn) == CoastFNAST or type(fn) == CoastGNAST or type(fn) == CoastFCAST
