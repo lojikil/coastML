@@ -457,7 +457,7 @@ class Lex:
         self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
         self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
         self.operators = re.compile("^([+=!@$%^&*|?<>/-])+$")
-        self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod|is|box)$")
+        self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod|is|box|sig|impl)$")
         self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit|bool|char)$")
         self.bools = re.compile("^(true|false)$")
 
