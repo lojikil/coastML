@@ -130,18 +130,17 @@ class Compiler:
                     # but for now we can just store arity, and the typing pass
                     # can do a lookup
                     self.functions[ast.name.identvalue] = len(ast.value.parameters)
-                    # really, we should `sub_compile` here, but for now
-                    # I just want to get functions checked at the top level
+
                     #
                     # XXX we need to check if the user wants us to disable self-TCO
                     if self.is_self_tail_call(ast.name, ast.value):
                         ast.value.self_tail_call = True
                         shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
                         new_assign = CoastAssignAST(ast.name, shadowed_fn)
-                        new_asts += [new_assign]
+                        subl = self.sub_compile(new_assign)
+                        new_asts += subl
                     else:
                         new_asts += [ast]
-                    #self.sub_compile(ast.value)
                 elif type(ast.value) == CoastCaseAST:
                     # we need to invert `case` forms
                     # NOTE this brings up a good point:
@@ -269,14 +268,19 @@ class Compiler:
                 # I just want to get functions checked at the top level
                 #
                 # XXX we need to check if the user wants us to disable self-TCO
+                tmp = []
+
                 if self.is_self_tail_call(ast.name, ast.value):
+                    print("274?")
                     ast.value.self_tail_call = True
                     shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
                     tmp = self.sub_compile(shadowed_fn, env.copy())
                     new_assign = CoastAssignAST(ast.name, tmp[0])
                     new_asts += [new_assign]
                 else:
+                    print("281?")
                     tmp = self.sub_compile(ast.value, env.copy())
+                print("%%tmp: ", tmp)
                 new_assign = CoastAssignAST(ast.name, tmp[0])
                 new_asts += [new_assign]
                 # XXX interesting point: do we do this here, and potentially modify the
@@ -344,6 +348,8 @@ class Compiler:
             new_asts += [res]
         elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
             (lifted, newcall) = self.lift_call_with_case(ast)
+            # NOTE we hve to actually walk over lifted and
+            # newcall, making sure that everything is defined therein...
             new_asts += lifted
             new_asts += [newcall]
             # NOTE would be really nice to make recommendations here

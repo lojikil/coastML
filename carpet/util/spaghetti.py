@@ -101,7 +101,7 @@ class EnvironmentFrame:
         self.modules = SpaghettiStack(modules)
         self.depth = 0
 
-    def copy():
+    def copy(self):
         ret = EnvironmentFrame(self.declarations.copy(),
                                self.variables.copy(),
                                self.functions.copy(),
