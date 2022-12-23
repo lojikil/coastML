@@ -271,16 +271,13 @@ class Compiler:
                 tmp = []
 
                 if self.is_self_tail_call(ast.name, ast.value):
-                    print("274?")
                     ast.value.self_tail_call = True
                     shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
                     tmp = self.sub_compile(shadowed_fn, env.copy())
                     new_assign = CoastAssignAST(ast.name, tmp[0])
                     new_asts += [new_assign]
                 else:
-                    print("281?")
                     tmp = self.sub_compile(ast.value, env.copy())
-                print("%%tmp: ", tmp)
                 new_assign = CoastAssignAST(ast.name, tmp[0])
                 new_asts += [new_assign]
                 # XXX interesting point: do we do this here, and potentially modify the
@@ -415,7 +412,13 @@ class Compiler:
                     "string-sort", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
                     "char-compare", "random-int", "random-float", "random-int-range",
-                    "random-bool", "random-choice"]
+                    "random-bool", "random-choice", "stream-init", "stream-iter",
+                    "stream-map", "stream-next", "option-get", "open-in", "open-out",
+                    "close", "+", "-", "*", "/", "%", "^", "&", "$", "!", "@", "!=", "<>",
+                    "!", "not", "<<", ">>", "|", "|>", "<|", "||", "&&", "log-shr", "log-shl",
+                    "log-and", "log-or", "log-not", "print_endline", "print", "char-escape",
+                    "int_of_string", "string_of_int", "string_of_float", "string_of_bool"]
+
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
