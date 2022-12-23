@@ -347,25 +347,42 @@ class Compiler:
         elif self.is_callable(ast):
             # Ok, we need to add each of the parameters to
             # the local declarations
+            fn_env = env.copy()
+            body_asts = []
             for param in ast.parameters:
+                #fn_env.declarations[param.ident
                 pass
 
             for b in ast.body.progn:
-                pass
+                body_asts += self.sub_compile(b, fn_env)
+
             new_asts += [ast]
 
         elif type(ast) == CoastBlockAST:
 
-            # XXX blocks
+            # NOTE blocks
             # blocks themselves introduce a new scope...
             # so should we create a copy of env, and
             # then use *that* for the sub compilation?
             # likely we aren't here directly, but that
             # *would* mean that the caller wouldn't have
             # to manage how we handle environments...
+            #
+            # oooo but how to make that work for function
+            # parameters? those actually need to be defined...
+            # but if you think about it, there's no *real*
+            # harm in yet another frame here, other than the
+            # memory consumption... ok, so what we also can
+            # do is what I do above, which is to elide the
+            # call for the block into the `fn` check itself;
+            # if we ever change how we compile blocks, that
+            # will have to change, but for now it should be
+            # fine
             block_env = env.copy()
+            new_progn = []
             for b in ast.progn:
-                self.sub_compile(b, block_env)
+                new_progn += self.sub_compile(b, block_env)
+            new_block = CoastBlockAST(new_progn)
 
         elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
             (lifted, newcall) = self.lift_call_with_case(ast)
