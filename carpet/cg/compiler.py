@@ -343,6 +343,7 @@ class Compiler:
 
             res.conditions = new_conditions
             new_asts += [res]
+
         elif self.is_callable(ast):
             # Ok, we need to add each of the parameters to
             # the local declarations
@@ -352,6 +353,20 @@ class Compiler:
             for b in ast.body.progn:
                 pass
             new_asts += [ast]
+
+        elif type(ast) == CoastBlockAST:
+
+            # XXX blocks
+            # blocks themselves introduce a new scope...
+            # so should we create a copy of env, and
+            # then use *that* for the sub compilation?
+            # likely we aren't here directly, but that
+            # *would* mean that the caller wouldn't have
+            # to manage how we handle environments...
+            block_env = env.copy()
+            for b in ast.progn:
+                self.sub_compile(b, block_env)
+
         elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
             (lifted, newcall) = self.lift_call_with_case(ast)
             # NOTE we hve to actually walk over lifted and
