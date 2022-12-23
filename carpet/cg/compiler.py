@@ -346,6 +346,15 @@ class Compiler:
 
             res.conditions = new_conditions
             new_asts += [res]
+        elif self.is_callable(ast):
+            # Ok, we need to add each of the parameters to
+            # the local declarations
+            for param in ast.parameters:
+                pass
+
+            for b in ast.body.progn:
+                pass
+            new_asts += [ast]
         elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
             (lifted, newcall) = self.lift_call_with_case(ast)
             # NOTE we hve to actually walk over lifted and
@@ -366,12 +375,16 @@ class Compiler:
                 # we have an operator, check if it's one we know about
                 pass
 
+            # NOTE this is a stub
+            for d in ast.data:
+                pass
+
             # XXX and here we need to check all variables to see if we
             # know about those as well...
         else:
             # here, we need to iterate over all the members anyway, and make sure they're
             # all defined...
-            pass
+            new_asts += [ast]
         return new_asts
 
     def is_callable(self, fn):
