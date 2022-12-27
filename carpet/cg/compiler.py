@@ -401,7 +401,8 @@ class Compiler:
                     raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.fn.identvalue), 0)
                 # XXX 14DEC2022 ok and next we have to iterate over the data...
             else:
-                # we have an operator, check if it's one we know about
+                if not self.is_basis_fn(ast.op) and ast.op.identvalue not in env.functions:
+                    raise CoastalCompilerError("undefined operator: \"{0}\"".format(ast.op.identvalue), 0)
                 pass
 
             # NOTE this is a stub
