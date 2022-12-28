@@ -18,7 +18,10 @@ class SpaghettiStack:
         if add_depth:
             ret = SpaghettiStack(None)
             ret.frames = [x for x in self.frames]
-            ret.frames.append({})
+            if type(self.frames[0]) is list:
+                ret.frames.append([])
+            else:
+                ret.frames.append({})
             ret.depth = self.depth + 1
             return ret
         else:
@@ -87,6 +90,19 @@ class SpaghettiStack:
             ret.append(frame.items())
         return ret
 
+    def __ior__(self, rhs):
+        if type(self.frames[0]) is dict:
+            return self.frames[-1] | rhs
+        else:
+            raise NotImplemented("__ior__ only works on dictionary frames")
+
+    def __iadd__(self, rhs):
+        if type(self.frames[0]) is list:
+            self.frames[-1] += rhs
+            return self
+        else:
+            raise NotImplemented("__iadd__ only works on list frames")
+
 # Just a simple helper to model how we actually use SpaghettiStacks in code really
 # Also makes it easier when calling the sub-compiler, because instead of passing in
 # 6 things that need to have their `copy` method called, we just pass in one thing
@@ -101,7 +117,7 @@ class EnvironmentFrame:
         self.modules = SpaghettiStack(modules)
         self.depth = 0
 
-    def copy():
+    def copy(self):
         ret = EnvironmentFrame(self.declarations.copy(),
                                self.variables.copy(),
                                self.functions.copy(),

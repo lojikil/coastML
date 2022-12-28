@@ -130,18 +130,17 @@ class Compiler:
                     # but for now we can just store arity, and the typing pass
                     # can do a lookup
                     self.functions[ast.name.identvalue] = len(ast.value.parameters)
-                    # really, we should `sub_compile` here, but for now
-                    # I just want to get functions checked at the top level
+
                     #
                     # XXX we need to check if the user wants us to disable self-TCO
                     if self.is_self_tail_call(ast.name, ast.value):
                         ast.value.self_tail_call = True
                         shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
                         new_assign = CoastAssignAST(ast.name, shadowed_fn)
-                        new_asts += [new_assign]
+                        subl = self.sub_compile(new_assign)
+                        new_asts += subl
                     else:
                         new_asts += [ast]
-                    #self.sub_compile(ast.value)
                 elif type(ast.value) == CoastCaseAST:
                     # we need to invert `case` forms
                     # NOTE this brings up a good point:
@@ -269,6 +268,8 @@ class Compiler:
                 # I just want to get functions checked at the top level
                 #
                 # XXX we need to check if the user wants us to disable self-TCO
+                tmp = []
+
                 if self.is_self_tail_call(ast.name, ast.value):
                     ast.value.self_tail_call = True
                     shadowed_fn = self.generate_shadows_self_tail_call(ast.name, ast.value)
@@ -342,8 +343,51 @@ class Compiler:
 
             res.conditions = new_conditions
             new_asts += [res]
+
+        elif self.is_callable(ast):
+            # Ok, we need to add each of the parameters to
+            # the local declarations
+            fn_env = env.copy()
+            body_asts = []
+            for param in ast.parameters:
+                #fn_env.declarations[param.ident
+                pass
+
+            for b in ast.body.progn:
+                body_asts += self.sub_compile(b, fn_env)
+
+            new_asts += [ast]
+
+        elif type(ast) == CoastBlockAST:
+
+            # NOTE blocks
+            # blocks themselves introduce a new scope...
+            # so should we create a copy of env, and
+            # then use *that* for the sub compilation?
+            # likely we aren't here directly, but that
+            # *would* mean that the caller wouldn't have
+            # to manage how we handle environments...
+            #
+            # oooo but how to make that work for function
+            # parameters? those actually need to be defined...
+            # but if you think about it, there's no *real*
+            # harm in yet another frame here, other than the
+            # memory consumption... ok, so what we also can
+            # do is what I do above, which is to elide the
+            # call for the block into the `fn` check itself;
+            # if we ever change how we compile blocks, that
+            # will have to change, but for now it should be
+            # fine
+            block_env = env.copy()
+            new_progn = []
+            for b in ast.progn:
+                new_progn += self.sub_compile(b, block_env)
+            new_block = CoastBlockAST(new_progn)
+
         elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
             (lifted, newcall) = self.lift_call_with_case(ast)
+            # NOTE we hve to actually walk over lifted and
+            # newcall, making sure that everything is defined therein...
             new_asts += lifted
             new_asts += [newcall]
             # NOTE would be really nice to make recommendations here
@@ -357,7 +401,12 @@ class Compiler:
                     raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.fn.identvalue), 0)
                 # XXX 14DEC2022 ok and next we have to iterate over the data...
             else:
-                # we have an operator, check if it's one we know about
+                if not self.is_basis_fn(ast.op) and ast.op.identvalue not in env.functions:
+                    raise CoastalCompilerError("undefined operator: \"{0}\"".format(ast.op.identvalue), 0)
+                pass
+
+            # NOTE this is a stub
+            for d in ast.data:
                 pass
 
             # XXX and here we need to check all variables to see if we
@@ -365,7 +414,7 @@ class Compiler:
         else:
             # here, we need to iterate over all the members anyway, and make sure they're
             # all defined...
-            pass
+            new_asts += [ast]
         return new_asts
 
     def is_callable(self, fn):
@@ -396,7 +445,13 @@ class Compiler:
                     "string-sort", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
                     "char-compare", "random-int", "random-float", "random-int-range",
-                    "random-bool", "random-choice"]
+                    "random-bool", "random-choice", "stream-init", "stream-iter",
+                    "stream-map", "stream-next", "option-get", "open-in", "open-out",
+                    "close", "+", "-", "*", "/", "%", "^", "&", "$", "!", "@", "!=", "<>",
+                    "!", "not", "<<", ">>", "|", "|>", "<|", "||", "&&", "log-shr", "log-shl",
+                    "log-and", "log-or", "log-not", "print_endline", "print", "char-escape",
+                    "int_of_string", "string_of_int", "string_of_float", "string_of_bool"]
+
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
