@@ -217,6 +217,10 @@ class Compiler:
         # iterate over the forms in `fn` to make sure that each is
         # lifted as needed and defined
         new_asts = []
+
+        if env is None:
+            env = self.environment
+
         if type(ast) == CoastTypeDefAST:
             # we need to:
             #
@@ -350,11 +354,12 @@ class Compiler:
             fn_env = env.copy()
             body_asts = []
             for param in ast.parameters:
-                #fn_env.declarations[param.ident
-                pass
+                # we really need to have some sort of better system
+                # here for types
+                fn_env.declarations[param.identvalue] = CoastAST
 
-            for b in ast.body.progn:
-                body_asts += self.sub_compile(b, fn_env)
+            body = self.sub_compile(ast.body, fn_env)
+            ast.body = body[0]
 
             new_asts += [ast]
 
@@ -383,7 +388,7 @@ class Compiler:
             for b in ast.progn:
                 new_progn += self.sub_compile(b, block_env)
             new_block = CoastBlockAST(new_progn)
-
+            new_asts += [new_block]
         elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
             (lifted, newcall) = self.lift_call_with_case(ast)
             # NOTE we hve to actually walk over lifted and
