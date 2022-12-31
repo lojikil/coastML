@@ -126,3 +126,12 @@ class EnvironmentFrame:
                                self.modules.copy())
         ret.depth = self.depth + 1
         return ret
+
+    def __contains__(self, key):
+        return (key in self.declarations) or \
+               (key in self.variables) or \
+               (key in self.functions) or \
+               (key in self.types) or \
+               (key in self.constructors) or \
+               (key in self.modules)
+

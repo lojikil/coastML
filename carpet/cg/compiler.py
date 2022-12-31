@@ -391,10 +391,21 @@ class Compiler:
             new_asts += [new_block]
         elif type(ast) == CoastOpCallAST or type(ast) == CoastFNCallAST:
             (lifted, newcall) = self.lift_call_with_case(ast)
-            # NOTE we hve to actually walk over lifted and
-            # newcall, making sure that everything is defined therein...
-            new_asts += lifted
+            new_lifts = []
+            for l in lifted:
+                new_lifts.append(self.sub_compile(l, env))
+
+            if lifted == []:
+                for d in ast.data:
+                    r = self.sub_compile(d, env)
+                    if len(r) > 0 and type(r[0]) == type(d):
+                        pass
+                    else:
+                        new_lifts.extend(self.sub_compile(d, env))
+
+            new_asts += new_lifts
             new_asts += [newcall]
+
             # NOTE would be really nice to make recommendations here
             # for example, if you try to call "ripnt", we could recommend
             # "print"; need to port my Levenshtein code from Reason...
@@ -404,18 +415,17 @@ class Compiler:
                 # defined
                 if not self.is_basis_fn(ast.fn) and ast.fn.identvalue not in env.functions:
                     raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.fn.identvalue), 0)
-                # XXX 14DEC2022 ok and next we have to iterate over the data...
             else:
                 if not self.is_basis_fn(ast.op) and ast.op.identvalue not in env.functions:
                     raise CoastalCompilerError("undefined operator: \"{0}\"".format(ast.op.identvalue), 0)
-                pass
-
-            # NOTE this is a stub
-            for d in ast.data:
-                pass
-
-            # XXX and here we need to check all variables to see if we
-            # know about those as well...
+        elif type(ast) is CoastIdentAST:
+            # NOTE we are only checking regular idents here...
+            # NOTE because we have no other contextual clues for a naked ident,
+            # we actually have to look over *all* the locations it could be defined...
+            if ast.identvalue in env:
+                new_asts += [ast]
+            else:
+                raise CoastalCompilerError("undefined identifier: \"{0}\"".format(ast.identvalue), 0)
         else:
             # here, we need to iterate over all the members anyway, and make sure they're
             # all defined...
