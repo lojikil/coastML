@@ -310,13 +310,15 @@ class Compiler:
                 # but the individual blocks they contain do
                 tmp = self.sub_compile(ast.value, env)
                 new_asts += [self.invert_case(tmp)]
-                env.variables += ast.name.identvalue
+                if ast.name.identvalue not in env.variables:
+                    env.variables += ast.name.identvalue
             else:
                 # XXX we should check for a function call here and
                 # lift `case` and the like
                 # here, we have a simple value assignment
                 new_asts += [ast]
-                env.variables += ast.name.identvalue
+                if ast.name.identvalue not in env.variables:
+                    env.variables += ast.name.identvalue
         elif type(ast) == CoastCaseAST:
             # here we have to:
             #
