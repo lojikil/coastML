@@ -135,3 +135,12 @@ class EnvironmentFrame:
                (key in self.constructors) or \
                (key in self.modules)
 
+    def __str__(self):
+        tmp = ["Declaration: " + str(self.declarations),
+               "Variables: " + str(self.variables),
+               "Functions: " + str(self.functions),
+               "Types: " + str(self.types),
+               "Contructors: " + str(self.constructors),
+               "Modules: " + str(self.modules)]
+        return "EnvironmentFrame({0})".format(', '.join(tmp))
+
