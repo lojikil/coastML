@@ -213,6 +213,23 @@ class Compiler:
         self.asts = new_asts
         return new_asts
 
+    def compile_by_pass(self, ast, env=None):
+        our_env = None
+
+        if env is None:
+            our_env = self.environment
+        else:
+            our_env = env
+
+        if self.asts == []:
+            parser = CoastalParser(self.src)
+            parser.load()
+            self.asts = parser.parse()
+
+        new_asts = []
+        for ast in self.asts:
+            self.sub_compile(ast, env=our_env)
+
     def sub_compile(self, ast, env=None):
         # iterate over the forms in `fn` to make sure that each is
         # lifted as needed and defined
