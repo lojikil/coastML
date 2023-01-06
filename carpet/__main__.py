@@ -8,6 +8,7 @@ if __name__ == "__main__":
         print("commands:\nload - load a file, and dump the resulting coastML")
         print("compile - like load, but run the compiler too (useful to see what transforms are applied)")
         print("python - dump python from a coastML file")
+        print("subpython - dump python from a coastML file, via the subcompiler")
         print("javascript - dump javascript from a coastML file")
         print("pynterp - use the Python compiler as an interpreter")
         sys.exit(0)
@@ -34,6 +35,16 @@ if __name__ == "__main__":
             c = CarpetPython(src, run_compile=True)
             c.load()
             c.generate()
+    elif sys.argv[1] == "subpython":
+        print("# pythoning via subcompiler:", sys.argv[2])
+        with open(sys.argv[2]) as fh:
+            src = fh.read()
+            c = Compiler(src)
+            asts = c.compile_by_subpass()
+            cpy = CarpetPython("", run_compile=False)
+            cpy.asts = asts
+            cpy.src = src
+            cpy.generate()
     elif sys.argv[1] == "javascript":
         print("// javascripting:", sys.argv[2])
         with open(sys.argv[2]) as fh:
