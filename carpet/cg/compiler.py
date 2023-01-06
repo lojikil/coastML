@@ -213,7 +213,7 @@ class Compiler:
         self.asts = new_asts
         return new_asts
 
-    def compile_by_pass(self, ast, env=None):
+    def compile_by_subpass(self, env=None):
         our_env = None
 
         if env is None:
@@ -228,7 +228,10 @@ class Compiler:
 
         new_asts = []
         for ast in self.asts:
-            self.sub_compile(ast, env=our_env)
+            new_asts += self.sub_compile(ast, env=our_env)
+
+        self.asts = new_asts
+        return new_asts
 
     def sub_compile(self, ast, env=None):
         # iterate over the forms in `fn` to make sure that each is
