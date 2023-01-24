@@ -80,6 +80,6 @@ res_or_err = fn x {
     esac
 };
 
-(res_or_err 10) |> print;
-(res_or_err 11) |> print;
-(res_or_err 12) |> print
+print (res_or_err 10) ;
+print (res_or_err 11) ;
+print (res_or_err 12)

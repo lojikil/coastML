@@ -359,7 +359,7 @@ class Compiler:
                 new_asts += sub_ic
                 res = nc
             else:
-                res = [ast]
+                res = ast
 
             new_conditions = []
             for cnd in res.conditions:
@@ -445,6 +445,8 @@ class Compiler:
             # NOTE because we have no other contextual clues for a naked ident,
             # we actually have to look over *all* the locations it could be defined...
             if ast.identvalue in env:
+                new_asts += [ast]
+            elif self.is_basis_fn(ast):
                 new_asts += [ast]
             else:
                 raise CoastalCompilerError("undefined identifier: \"{0}\"".format(ast.identvalue), 0)
