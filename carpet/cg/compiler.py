@@ -365,7 +365,7 @@ class Compiler:
             for cnd in res.conditions:
                 [pred, then] = cnd
                 new_then = self.sub_compile(then, env.copy())
-                new_conditions.append([cnd, new_then])
+                new_conditions.append([pred, new_then[0]])
 
             res.conditions = new_conditions
             new_asts += [res]
