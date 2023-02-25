@@ -213,6 +213,42 @@ class Compiler:
         self.asts = new_asts
         return new_asts
 
+    def type_check(self, ast, atype, env=None):
+        our_env = None
+
+        if env is None:
+            our_env = self.environment
+        else:
+            our_env = env
+
+        # ok, we need to:
+        #
+        # . have a test for each type of AST that can contain a type
+        # . accept a type for that AST
+        # . compare the two
+        #
+        # if you think about it, type inference is the opposite interaction...
+        #
+        # the return type should be:
+        #
+        # . true or false
+        # . a list of bindings (like `List[a]` where `a :- Int`)
+        #
+        # Also need to handle Type Classes here...
+
+        if type(ast) == CoastIdentAST:
+            pass
+        elif type(ast) == CoastFNCallAST:
+            pass
+        elif type(ast) == CoastFNAST:
+            pass
+        elif type(ast) == CoastOpCallAST:
+            pass
+        elif type(ast) == CoastCaseAST:
+            pass
+
+        return False
+
     def compile_by_subpass(self, env=None):
         our_env = None
 
