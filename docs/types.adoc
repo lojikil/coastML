@@ -1,0 +1,15 @@
+== Overview
+
+I need to think a lot more about how types are applied, but overall it should be relatively straight forward.
+I've been writing down inference rules (and I wish there was something that would compile inference rules into
+a parser and type checker!).
+
+[source]
+----
+G |- e1:T1 G |- cnd[n]:T1 G |- guard[n]:bool G |- r[n]:T2
+=========================================================
+case e1
+    | cnd[n] (guard[n]) { r[n] }
+    | _ { r[else] }
+esac
+----
