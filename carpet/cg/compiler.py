@@ -213,6 +213,28 @@ class Compiler:
         self.asts = new_asts
         return new_asts
 
+    def bottom_type(self, ast):
+        # we need to check if the type here
+        # is one of: int, float, hex, oct, bin,
+        # bool, unit, char, string
+        # or it could be a complex type like
+        # array, dequeue, or lists
+        if type(ast) == CoastHexAST:
+            return True
+        elif type(ast) == CoastBinAST:
+            return True
+        elif type(ast) == CoastOctAST:
+            return True
+        elif type(ast) == CoastIntAST:
+            return True
+        elif type(ast) == CoastFloatAST:
+            return True
+        elif type(ast) == CoastStringAST:
+            return True
+        elif type(ast) == CoastLiteralArrayAST:
+            return True
+        return False
+
     def type_check(self, ast, atype, env=None):
         our_env = None
 
@@ -236,9 +258,13 @@ class Compiler:
         #
         # Also need to handle Type Classes here...
 
-        if type(ast) == CoastIdentAST:
+        if self.bottom_type(ast):
+            pass
+        elif type(ast) == CoastIdentAST:
             pass
         elif type(ast) == CoastFNCallAST:
+            pass
+        elif type(ast) == CoastDeclareAST:
             pass
         elif type(ast) == CoastFNAST:
             pass
