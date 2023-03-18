@@ -13,3 +13,13 @@ case e1
     | _ { r[else] }
 esac
 ----
+
+The algorithm here is relatively simple:
+
+. collect together all types into their buckets, like `cnd` and `guard`
+. make sure they all match
+
+The idea for functions could be interesting as well, since we can have a `declaration` for a function
+as well as various types of parameters... we need to make sure that the last member of the body matches
+the type of the declaration or definition...
+
