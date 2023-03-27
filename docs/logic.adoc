@@ -1,0 +1,46 @@
+== Overview
+
+I've been thinking a lot about how I want to introduce formal specification and verification to coastML; it's included in many of the comments throughout the codebase. I thought
+here I would just start collecting some items about how to formally specificy & verify software. A major influence here for me will be Hoare Logic and Dafny.
+
+Wrt Dafny, I do really enjoy how things like `invariant` are just normal looking forms within the codebase, not special spicy comments nor special syntax; that's a huge point of
+https://lojikil.github.io/b/13.html[my blog post on Hoare Logic and sub languages]. Like this is pretty great in Dafny:
+
+[source,dafny]
+----
+method max(arr:array<int>) returns (max:int)
+ // Array must have at least one element
+ requires arr.Length > 0 // <1>
+ // Return cannot be smaller than any element in array
+ ensures forall j : int ::   j >= 0 && j < arr.Length  ==>  max >= arr[j]
+ // Return must match some element in array
+ ensures exists j : int ::   j>=0 && j < arr.Length && max == arr[j]
+{
+  max := arr[0];
+  var i: int := 1;
+  //
+  while(i < arr.Length)
+  // Index at most arr.Length (needed to show i==arr.Length after loop)
+  invariant i <= arr.Length // <2>
+  // No element seen so far larger than max
+  invariant forall j:int :: j >= 0 && j < i  ==>  max >= arr[j]
+  // Some element seen so far matches max
+  invariant exists j:int :: j >= 0 && j < i && max == arr[j]
+  // arr.Length - i decreases at every step and is lower-bounded by 0
+  decreases arr.Length - i
+  {
+    // Update max if larger element encountered
+    if (arr[i] > max) {
+      max := arr[i];
+    }
+    // Continue through array
+    i := i + 1;
+  }
+}
+----
+<1> It's nice that Hoare Logic like `requires` and `ensures` are just normal-looking forms in a function
+<2> It's doubly nice that loop invariants are just a literally `invariant` form in code
+
+- https://buttondown.email/hillelwayne/archive/designing-software-with-predicate-logic/[Designing Software With Predicate Logic]
+- https://www.hillelwayne.com/post/decision-table-patterns/[Decision Table Patterns]
+- https://mboehme.github.io/paper/ICSE22.NIER.pdf[Statistical Reasoning about Programs]
