@@ -8,7 +8,6 @@ class CarpetJavaScript:
         self.asts = []
         self.indent = indent
         self.res_ctr = 0
-        self.compile = compiler
         if fh is None:
             self.fh = io.StringIO("")
         else:
@@ -19,10 +18,8 @@ class CarpetJavaScript:
         self.res_ctr = 0
         parser = CoastalParser(self.src)
         self.asts = parser.parse()
-
-        if self.compile:
-            comp = Compiler.from_asts(self.src, self.asts)
-            self.asts = comp.compile()
+        comp = Compiler.from_asts(self.src, self.asts)
+        self.asts = comp.compile()
 
     def is_callable(self, fn):
         return type(fn) == CoastFNAST or type(fn) == CoastGNAST or type(fn) == CoastFCAST
@@ -153,20 +150,24 @@ class CarpetJavaScript:
         # NOTE we *also* now need to add constructors to
         # `case` forms
         base = self.mung_ident(t.typename)
-        print("class {0}:".format(base))
-        self.generate_indent(depth + 1)
-        print("pass\n")
+        print("class {0} {{".format(base))
+        print("}\n")
         for ctor in t.constructors:
-            print("@dataclass\nclass {0}_{1}({0}):".format(base, self.mung_ident(str(ctor[0]))))
+            print("class {0}_{1} extends {0} {{".format(base, self.mung_ident(str(ctor[0]))))
             ctorp = ctor[1]
+            self.generate_indent(depth + 1)
+            print("constructor(", end='')
             if type(ctorp) is CoastLiteralAST and len(ctorp.litvalue) > 0:
                 m = 0
-                for p in ctorp.litvalue:
-                    self.generate_indent(depth + 1)
-                    print("m_{0} : ".format(m), end='')
+                l = len(ctorp.litvalue)
+                for p in range(0, l):
+                    if m < (l - 1):
+                        print("m_{0}, ".format(m), end='')
+                    else:
+                        print("m_{0}".format(m), end='')
                     m += 1
-                    self.generate_cardinal_type(p, depth=0)
-                    print("")
+
+                print(") {")
 
             elif type(ctorp) is list and len(ctorp) > 0:
                 # XXX this is dead code I believe, but I need to
@@ -181,8 +182,19 @@ class CarpetJavaScript:
                                                      params))
             else:
                 self.generate_indent(depth + 1)
-                print("pass")
+                print(") {")
             print("")
+        for ctor in t.constructors:
+            ctorp = ctor[1]
+            self.generate_indent(depth + 2)
+            if type(ctorp) is CoastLiteralAST and len(ctorp.litvalue) > 0:
+                m = 0
+                l = len(ctorp.litvalue)
+                for p in range(0, l):
+                    print("this.m_{0} = m_{0}".format(m))
+                    m += 1
+        self.generate_indent(depth + 1)
+        print("}\n}")
 
     def generate_cardinal_type(self, t, depth=0, tail=False):
         # for right now, we're not attempting to generate
