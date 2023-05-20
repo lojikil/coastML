@@ -115,7 +115,8 @@ class CarpetPython:
     def generate_fn(self, fn, depth=0, tail=False):
         n = self.mung_ident(fn.name.identvalue)
         v = fn.value
-        params = ", ".join([x.to_coast() for x in v.parameters])
+        params = ", ".join([self.mung_ident(x.to_coast())
+                            for x in v.parameters])
         self.generate_indent(depth)
         print("def {0}({1}):".format(n, params))
         if v.self_tail_call:
