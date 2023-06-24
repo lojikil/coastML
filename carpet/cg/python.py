@@ -61,7 +61,8 @@ class CarpetPython:
                     "string-map-index", "string-foldl", "string-foldr", "string-iter-until",
                     "string-sort", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
-                    "char-compare"]
+                    "char-compare", "foreign-object-type", "foreign-call",
+                    "foreign-module-call", "foreign-class-call"]
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
@@ -554,6 +555,10 @@ class CarpetPython:
             # now *this* get's a little more interesting...
             # we could map over zip here...
             pass
+        elif basisname == "foreign-object-type":
+            print("type(", end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(").__name__", end='')
         else:
             print("willimplementlater()", end='')
 
