@@ -457,8 +457,8 @@ class Lex:
         self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
         self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
         self.operators = re.compile("^([+=!@$%^&*|?<>/-])+$")
-        self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod|is|box|sig|impl)$")
-        self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit|bool|char)$")
+        self.keywords = re.compile("^(case|esac|fn|fc|cf|gn|type|epyt|mod|is|box|sig|impl|newtype)$")
+        self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit|bool|char|foreign)$")
         self.bools = re.compile("^(true|false)$")
 
     def next(self):
@@ -1303,7 +1303,7 @@ class CoastalParser:
         # NOTE probably need to add things like "uint64" and such here
         # too.
         basictypes = ["int", "char", "float", "number", "string", "unit", "bool"]
-        compltypes = ["list", "array", "deque", "function"]
+        compltypes = ["list", "array", "deque", "function", "foreign"]
 
         if type(self.lexemes[self.current_offset]) == TokenType and \
            self.lexemes[self.current_offset].lexeme in basictypes:
@@ -1429,6 +1429,10 @@ class CoastalParser:
 
         return CoastTypeDefAST(typename, constructors, types=types)
 
+    def parse_newtype(self):
+        return CoastalParseError("Not implemented: `newtype`",
+                                 self.lexemes[self.current_offset].line)
+
     def sub_parse(self):
         if self.current_offset >= len(self.lexemes):
             raise CoastalParseError("End of file", self.lexemes[-1].line)
@@ -1478,6 +1482,8 @@ class CoastalParser:
                 return self.parse_fc()
             elif cur_lex.lexeme == "type":
                 return self.parse_type()
+            elif cur_lex.lexeme == "newtype":
+                return self.parse_newtype()
             elif cur_lex.lexeme == "box":
                 # this is basically just a function call
                 return self.parse_box()
