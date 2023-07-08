@@ -559,6 +559,14 @@ class CarpetPython:
             print("type(", end='')
             self.generate_dispatch(call.data[0], depth=0)
             print(").__name__", end='')
+        elif basisname == "foreign-call":
+            print(call.data[0].litvalue[1:-1] + "(", end='')
+            l = len(call.data)
+            for i in range(1, len(call.data)):
+                self.generate_dispatch(call.data[i], depth=0)
+                if i < (l - 1):
+                    print(", ", end='')
+            print(")", end='')
         else:
             print("willimplementlater()", end='')
 
