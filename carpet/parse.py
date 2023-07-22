@@ -511,7 +511,7 @@ class Lex:
                 return TokenOperator(self.src[o:no], self.line, self.offset)
         elif self.src[o] == '(':
             if self.src[o + 1] == ')':
-                self.offset += 3
+                self.offset = o + 2
                 return TokenUnit(self.line, self.offset)
             self.offset = o + 1
             return TokenCallStart(self.line, self.offset)
