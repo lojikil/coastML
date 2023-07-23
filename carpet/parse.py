@@ -497,7 +497,7 @@ class Lex:
         # . Dividers: {} [] () $()
         elif self.src[o] == '$':
             if self.src[o + 1] == '(':
-                self.offset += 2
+                self.offset = o + 2
                 return TokenCut(self.line, self.offset)
             elif self.rest_ident.match(self.src[o + 1]):
                 no = o + 1
