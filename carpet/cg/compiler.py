@@ -499,7 +499,9 @@ class Compiler:
                 # we have a function; check that it's a function we know
                 # about, such as a basis function or one that the user has
                 # defined
-                if not self.is_basis_fn(ast.fn) and ast.fn.identvalue not in env.functions:
+                if not self.is_basis_fn(ast.fn) and \
+                   ast.fn.identvalue not in env.functions and \
+                   not self.is_accessor(ast.fn):
                     raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.fn.identvalue), 0)
             else:
                 if not self.is_basis_fn(ast.op) and ast.op.identvalue not in env.functions:
@@ -564,6 +566,7 @@ class Compiler:
         # the compiler should take care of if this
         # accessor is _meaningful_ or not, so here we
         # just need to know what to dispatch to
+        print("in is_accessor with:", fn)
         if fn.identvalue[0] == '_':
             return True
         return False
