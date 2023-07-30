@@ -198,7 +198,9 @@ class Compiler:
                     # we have a function; check that it's a function we know
                     # about, such as a basis function or one that the user has
                     # defined
-                    if not self.is_basis_fn(ast.fn) and ast.fn.identvalue not in self.functions:
+                    if not self.is_basis_fn(ast.fn) and \
+                       ast.fn.identvalue not in self.functions and \
+                       not self.is_accessor(ast.fn):
                         raise CoastalCompilerError("undefined function: \"{0}\"".format(ast.fn.identvalue), 0)
                 else:
                     # we have an operator, check if it's one we know about
