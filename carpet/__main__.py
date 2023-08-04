@@ -9,6 +9,7 @@ if __name__ == "__main__":
         print("compile - like load, but run the compiler too (useful to see what transforms are applied)")
         print("python - dump python from a coastML file")
         print("subpython - dump python from a coastML file, via the subcompiler")
+        print("nopython - dump python from a coastML file, without running the compiler")
         print("javascript - dump javascript from a coastML file")
         print("pynterp - use the Python compiler as an interpreter")
         sys.exit(0)
@@ -45,6 +46,13 @@ if __name__ == "__main__":
             cpy.asts = asts
             cpy.src = src
             cpy.generate()
+    elif sys.argv[1] == "nopython":
+        print("# pythonizing:", sys.argv[2])
+        with open(sys.argv[2]) as fh:
+            src = fh.read()
+            c = CarpetPython(src, run_compile=False)
+            c.load()
+            c.generate()
     elif sys.argv[1] == "javascript":
         print("// javascripting:", sys.argv[2])
         with open(sys.argv[2]) as fh:
