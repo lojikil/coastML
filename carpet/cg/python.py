@@ -62,7 +62,7 @@ class CarpetPython:
                     "string-sort", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
                     "char-compare", "foreign-object-type", "foreign-call",
-                    "foreign-module-call", "foreign-class-call"]
+                    "foreign-module-call", "foreign-class-call", "foreign-accessor"]
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
@@ -567,6 +567,9 @@ class CarpetPython:
                 if i < (l - 1):
                     print(", ", end='')
             print(")", end='')
+        elif basisname == "foreign-accessor":
+            self.generate_dispatch(call.data[1], depth=0)
+            print(".{0}".format(call.data[0].litvalue))
         else:
             print("willimplementlater()", end='')
 

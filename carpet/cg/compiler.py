@@ -557,7 +557,7 @@ class Compiler:
                     "log-and", "log-or", "log-not", "print_endline", "print", "char-escape",
                     "int_of_string", "string_of_int", "string_of_float", "string_of_bool",
                     "<", ">", "<=", ">=", "foreign-object-type", "foreign-call",
-                    "foreign-module-call", "foreign-class-call"]
+                    "foreign-module-call", "foreign-class-call", "foreign-accessor"]
 
         return fn.identvalue in basislib
 
