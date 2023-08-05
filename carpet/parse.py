@@ -461,6 +461,15 @@ class Lex:
         self.types = re.compile("^(int|float|number|string|list|array|deque|function|unit|bool|char|foreign)$")
         self.bools = re.compile("^(true|false)$")
 
+    def peek(self):
+        # XXX this generates a ton of little objects, but it's useful for
+        # parsers... it would be enough to just return the Type of the
+        # result rather than the full thing, but...
+        o = self.offset
+        tok = self.next()
+        self.offset = o
+        return tok
+
     def next(self):
         o = self.offset
         if o >= len(self.src):
