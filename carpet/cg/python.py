@@ -270,11 +270,37 @@ class CarpetPython:
         # change
         if t.basetype == "string":
             print("str", end='')
+        elif t.basetype == "char":
+            print("str", end='')
         elif t.basetype == "num":
             # NOTE: must remember to include `from numbers import Number`
             print("Number", end='')
         elif t.basetype == "array":
             print("list", end='')
+        elif t.basetype == 'function':
+            # NOTE here we actually should iterate
+            # over the other types and print them
+            # have to actually get this correct:
+            # https://docs.python.org/3/library/typing.html#annotating-callable-objects
+            # so the syntax should be `Callable[[int], str]`
+            # for a function that accepts one integer
+            # parameter and returns a string.
+            print("Callable[", end='')
+            params = t.typeparameters.litvalue[0:-1]
+            retprm = t.typeparameters.litvalue[-1]
+            if len(params) != 0:
+                lp = len(params)
+                idx = 0
+                print("[", end="")
+                for subt in params:
+                    self.generate_cardinal_type(subt)
+                    if idx <= (lp - 2):
+                        print(", ", end="")
+                    idx += 1
+                print("], ", end="")
+            if retprm != None:
+                self.generate_cardinal_type(retprm)
+            print("]", end='')
         else:
             print(t.basetype, end='')
 
