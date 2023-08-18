@@ -277,6 +277,8 @@ class CarpetPython:
             print("Number", end='')
         elif t.basetype == "array":
             print("list", end='')
+        elif t.basetype == "foreign":
+            self.generate_cardinal_type(t.typeparameters.litvalue[0])
         elif t.basetype == 'function':
             # NOTE here we actually should iterate
             # over the other types and print them
