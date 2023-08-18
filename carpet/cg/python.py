@@ -61,7 +61,8 @@ class CarpetPython:
                     "string-map-index", "string-foldl", "string-foldr", "string-iter-until",
                     "string-sort", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
-                    "char-compare"]
+                    "char-compare", "foreign-object-type", "foreign-call",
+                    "foreign-module-call", "foreign-class-call", "foreign-accessor"]
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
@@ -269,11 +270,39 @@ class CarpetPython:
         # change
         if t.basetype == "string":
             print("str", end='')
+        elif t.basetype == "char":
+            print("str", end='')
         elif t.basetype == "num":
             # NOTE: must remember to include `from numbers import Number`
             print("Number", end='')
         elif t.basetype == "array":
             print("list", end='')
+        elif t.basetype == "foreign":
+            self.generate_cardinal_type(t.typeparameters.litvalue[0])
+        elif t.basetype == 'function':
+            # NOTE here we actually should iterate
+            # over the other types and print them
+            # have to actually get this correct:
+            # https://docs.python.org/3/library/typing.html#annotating-callable-objects
+            # so the syntax should be `Callable[[int], str]`
+            # for a function that accepts one integer
+            # parameter and returns a string.
+            print("Callable[", end='')
+            params = t.typeparameters.litvalue[0:-1]
+            retprm = t.typeparameters.litvalue[-1]
+            if len(params) != 0:
+                lp = len(params)
+                idx = 0
+                print("[", end="")
+                for subt in params:
+                    self.generate_cardinal_type(subt)
+                    if idx <= (lp - 2):
+                        print(", ", end="")
+                    idx += 1
+                print("], ", end="")
+            if retprm != None:
+                self.generate_cardinal_type(retprm)
+            print("]", end='')
         else:
             print(t.basetype, end='')
 
@@ -554,6 +583,21 @@ class CarpetPython:
             # now *this* get's a little more interesting...
             # we could map over zip here...
             pass
+        elif basisname == "foreign-object-type":
+            print("type(", end='')
+            self.generate_dispatch(call.data[0], depth=0)
+            print(").__name__", end='')
+        elif basisname == "foreign-call":
+            print(call.data[0].litvalue[1:-1] + "(", end='')
+            l = len(call.data)
+            for i in range(1, len(call.data)):
+                self.generate_dispatch(call.data[i], depth=0)
+                if i < (l - 1):
+                    print(", ", end='')
+            print(")", end='')
+        elif basisname == "foreign-accessor":
+            self.generate_dispatch(call.data[1], depth=0)
+            print(".{0}".format(call.data[0].litvalue[1:-1]))
         else:
             print("willimplementlater()", end='')
 
