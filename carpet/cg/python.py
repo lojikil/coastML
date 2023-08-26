@@ -126,7 +126,7 @@ class CarpetPython:
             self.generate_block(v.body, tail=tail, depth=depth+1)
 
     def generate_assignment(self, ast, depth=0):
-        n = ast.name.identvalue
+        n = self.mung_ident(ast.name.identvalue)
         v = ast.value
         if type(v) == CoastFNCallAST or type(v) == CoastOpCallAST:
             # FIXME this isn't identing correctly...
