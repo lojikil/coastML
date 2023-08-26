@@ -992,6 +992,11 @@ class CarpetPython:
                 self.generate_array(ast, depth=0)
             else:
                 self.generate_array(ast, depth=depth)
+        elif type(ast) is CoastLiteralAST and ast.littype is TokenUnit:
+            if tail:
+                print("return None", end='')
+            else:
+                print("None", end='')
         else:
             if tail:
                 print('return ', end='')
