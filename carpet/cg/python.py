@@ -142,7 +142,10 @@ class CarpetPython:
             self.generate_dispatch(v, depth=depth+1)
 
     def generate_literal(self, v, depth=0):
-        print(v.value, end='')
+        if v.littype == TokenBool:
+            print(v.litvalue.capitalize(), end='')
+        else:
+            print(v.litvalue, end='')
 
     def generate_block(self, block, depth=0, tail=False):
         # we need to track if this or the call
@@ -1003,6 +1006,8 @@ class CarpetPython:
 
             if type(ast) is CoastIdentAST:
                 print(self.mung_ident(ast), end='')
+            elif type(ast) is CoastLiteralAST:
+                self.generate_literal(ast)
             else:
                 print(str(ast), end='')
 
