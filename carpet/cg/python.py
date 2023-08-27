@@ -779,7 +779,7 @@ class CarpetPython:
                 # initial `if` form
                 self.generate_indent(depth)
             else:
-                resv = case.initial_condition.identvalue
+                resv = self.mung_ident(case.initial_condition.identvalue)
 
             for cnd in case.conditions:
                 test = cnd[0]
@@ -927,6 +927,12 @@ class CarpetPython:
             self.generate_fn_inverted_case(newast)
         elif type(call) == CoastOpCallAST:
             op = call.op.identvalue
+
+            if op == "&&":
+                op = "and"
+            elif op == "||":
+                op = "or"
+
             print("(", end='')
             l = len(call.data)
             o = 0
