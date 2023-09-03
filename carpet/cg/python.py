@@ -855,7 +855,7 @@ class CarpetPython:
                     self.generate_call(test, depth=0, tail=False)
                     print(":")
 
-                self.generate_block(then, depth=depth, tail=tail)
+                self.generate_block(then, depth=depth+1, tail=tail)
                 ctr += 1
 
     def generate_call(self, call, depth=0, tail=False):
