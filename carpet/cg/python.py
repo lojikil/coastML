@@ -250,7 +250,17 @@ class CarpetPython:
                     self.generate_indent(depth + 1)
                     print("m_{0} : ".format(m), end='')
                     m += 1
-                    self.generate_cardinal_type(p, depth=0)
+                    found = False
+                    if t.types is not None:
+                        # XXX we need to add equality to all the token types
+                        for mem in t.types.litvalue:
+                            if mem.basetype == p.basetype:
+                                print("Any", end="")
+                                found = True
+                        if not found:
+                            self.generate_cardinal_type(p, depth=0)
+                    else:
+                        self.generate_cardinal_type(p, depth=0)
                     print("")
 
             elif type(ctorp) is list and len(ctorp) > 0:
