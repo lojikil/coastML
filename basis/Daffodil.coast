@@ -7,3 +7,141 @@ type Daffodil
 | Bool is [bool]
 | String is [string]
 epyt
+
+daffodil->json = fn o {
+    case o
+        | (Daffodil.Assoc _ _) {
+
+        }
+        | (Daffodil.Array _) {
+
+        }
+        | (Daffodil.Int _) {
+
+        }
+        | (Daffodil.Float _) {
+
+        }
+        | (Daffodil.String _) {
+
+        }
+        | (Daffodil.Bool _) {
+
+        }
+    esac
+}
+
+daffodil->yaml = fn o {
+    case o
+        | (Daffodil.Assoc _ _) {
+
+        }
+        | (Daffodil.Array _) {
+
+        }
+        | (Daffodil.Int _) {
+
+        }
+        | (Daffodil.Float _) {
+
+        }
+        | (Daffodil.String _) {
+
+        }
+        | (Daffodil.Bool _) {
+
+        }
+    esac
+}
+
+daffodil->xml = fn o {
+    case o
+        | (Daffodil.Assoc _ _) {
+
+        }
+        | (Daffodil.Array _) {
+
+        }
+        | (Daffodil.Int _) {
+
+        }
+        | (Daffodil.Float _) {
+
+        }
+        | (Daffodil.String _) {
+
+        }
+        | (Daffodil.Bool _) {
+
+        }
+    esac
+}
+
+daffodil->toml = fn o {
+    case o
+        | (Daffodil.Assoc _ _) {
+
+        }
+        | (Daffodil.Array _) {
+
+        }
+        | (Daffodil.Int _) {
+
+        }
+        | (Daffodil.Float _) {
+
+        }
+        | (Daffodil.String _) {
+
+        }
+        | (Daffodil.Bool _) {
+
+        }
+    esac
+}
+
+daffodil->ucl = fn o {
+    case o
+        | (Daffodil.Assoc _ _) {
+
+        }
+        | (Daffodil.Array _) {
+
+        }
+        | (Daffodil.Int _) {
+
+        }
+        | (Daffodil.Float _) {
+
+        }
+        | (Daffodil.String _) {
+
+        }
+        | (Daffodil.Bool _) {
+
+        }
+    esac
+}
+
+daffodil->dhall = fn o {
+    case o
+        | (Daffodil.Assoc _ _) {
+
+        }
+        | (Daffodil.Array _) {
+
+        }
+        | (Daffodil.Int _) {
+
+        }
+        | (Daffodil.Float _) {
+
+        }
+        | (Daffodil.String _) {
+
+        }
+        | (Daffodil.Bool _) {
+
+        }
+    esac
+}

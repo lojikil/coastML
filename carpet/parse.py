@@ -1214,7 +1214,7 @@ class CoastalParser:
                 elif subcaptures[i].identvalue == op.identvalue:
                     pass
                 else:
-                    raise CoastalParseError("Attempted to use mis-matched operators", subcaptures[i].line)
+                    raise CoastalParseError("Attempted to use mis-matched operators: {0} {1}".format(subcaptures[i].identvalue, op.identvalue), 0)
             return CoastOpCallAST(op, args)
         else:
             # here we want to turn this into a CoastAST that we
