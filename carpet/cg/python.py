@@ -118,7 +118,6 @@ class CarpetPython:
         v = fn.value
         params = ", ".join([self.mung_ident(x.to_coast())
                             for x in v.parameters])
-        self.generate_indent(depth)
         print("def {0}({1}):".format(n, params))
         if v.self_tail_call:
             self.generate_self_tail_call(n, v, depth=depth+1)
@@ -1038,7 +1037,7 @@ class CarpetPython:
 
         # XXX really need to be more selective about these...
         print("from dataclasses import dataclass\nimport functools")
-        print("import itertools\n")
+        print("import itertools\nfrom typing import Any, Callable")
 
         for ast in self.asts:
             self.generate_dispatch(ast, depth, tail=True)
