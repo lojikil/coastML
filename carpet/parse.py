@@ -951,7 +951,12 @@ class CoastIdentAST(CoastAST):
 
     @classmethod
     def make_ident(cls, name):
-        return CoastIdentAST(TokenIdent, name)
+        if isinstance(name, Token):
+            return CoastIdentAST(type(name), name.lexeme)
+        elif type(name) == str:
+            return coastIdentAST(TokenIdent, name)
+        else:
+            raise CoastalParseError("incorrect type for ident")
 
     def to_coast(self, depth=0):
         # switch on the type...
@@ -1139,7 +1144,13 @@ class CoastalParser:
                 break
             elif self.simple_value(self.lexemes[self.current_offset]):
                 res.append(self.parse_simple_value())
+            elif type(self.lexemes[self.current_offset]) == TokenTag or \
+                 type(self.lexemes[self.current_offset]) == TokenIdent or \
+                 type(self.lexemes[self.current_offset]) == TokenNSMod:
+                self.current_offset += 1
+                res.append(CoastIdentAST.make_ident(self.lexemes[self.current_offset - 1]))
             elif type(self.lexemes[self.current_offset]) == TokenArrayStart:
+                self.current_offset += 1
                 res.append(self.parse_array_literal())
             elif type(self.lexemes[self.current_offset]) == TokenCallStart:
                 self.current_offset += 1
