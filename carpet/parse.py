@@ -1099,7 +1099,11 @@ class CoastalParser:
         while True:
             if isinstance(self.lexemes[self.current_offset], TokenBlockEnd):
                 break
-            res.append(self.sub_parse())
+            if isinstance(self.lexemes[self.current_offset], TokenSemiColon) and \
+               isinstance(self.lexemes[self.current_offset + 1], TokenBlockEnd):
+                self.current_offset += 1
+            else:
+                res.append(self.sub_parse())
         self.current_offset += 1
 
         return CoastBlockAST(res)
@@ -1288,7 +1292,7 @@ class CoastalParser:
                 self.current_offset += 1
                 break
             else:
-                raise CoastParseError("incorrectly formatted `case` form",
+                raise CoastalParseError("incorrectly formatted `case` form",
                                       self.lexemes[self.current_offset].line)
         return CoastCaseAST(ic, conditions)
 
