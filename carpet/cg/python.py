@@ -1,5 +1,11 @@
+import re
 from ..parse import *
 from .compiler import Compiler
+
+
+# NOTE that "->" isn't handled by this because
+# it could mean one of two other mungings
+ident_dash_re = re.compile("-([!@$%^&*+<|?])")
 
 # The actual coastML -> Python compiler
 # named after the "coastal carpet python"
@@ -103,7 +109,54 @@ class CarpetPython:
             src = ident.identvalue
         else:
             src = ident
-        return src.replace("->", "2").replace("-", "_").replace("?", "_p")
+
+        # handle way more rewriting
+
+        # handle dash rewriting more generically
+        # also, need to handle the ambiguity of
+        # `->`:
+        #
+        # . if it is at the end of the ident, it becomes "_gt"
+        # . if it is in the middle, it becomes "2"
+
+        m = ident_dash_re.search(src)
+        if m:
+            # rewrite the match to the submatched
+            # character
+            src = re.sub(ident_dash_re, m.groups(0)[0], src)
+
+        replacements = [("|>", "2"),
+                        ("<|", "_from"),
+                        ("<>", "_neq"),
+                        (">=", "_ge"),
+                        ("<=", "_le"),
+                        ("<", "_lt"),
+                        ("?", "_p"),
+                        ("!", "_set"),
+                        ("=", "_eq"),
+                        ("@", "_at"),
+                        ("$", "_dollar"),
+                        ("%", "_prim"),
+                        ("^", "_c"),
+                        ("&", "_and"),
+                        ("*", "_mul"),
+                        ("+", "_plus")]
+
+        for replacement in replacements:
+            src = src.replace(replacement[0], replacement[1])
+
+        if "->" in src:
+            if src.index("->") < (len(src) - 2):
+                src = src.replace("->", "2")
+            else:
+                src = src.replace("->", "_gt")
+        elif ">" in src:
+            src = src.replace(">", "_gt")
+
+        src = src.replace("-", "_")
+        src = src.replace("__", "_")
+
+        return src
 
     def generate_indent(self, cnt):
         for i in range(0, cnt):
