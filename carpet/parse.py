@@ -1527,7 +1527,7 @@ class CoastalParser:
         else:
             o = self.lexemes[self.current_offset]
             l = self.lexemes[self.current_offset].line
-            raise CoastalParseError("Incorrect top-level form {0}".format(str(type(o))), l)
+            raise CoastalParseError("Incorrect top-level form {0}".format(str(o)), l)
 
     def load(self, skip_comments=True):
         self.lexemes = []
