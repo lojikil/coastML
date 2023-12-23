@@ -664,7 +664,7 @@ class CarpetPython:
             print(")", end='')
         elif basisname == "foreign-accessor":
             self.generate_dispatch(call.data[1], depth=0)
-            print(".{0}".format(call.data[0].litvalue[1:-1]))
+            print(".{0}".format(call.data[0].litvalue[1:-1]), end='')
         else:
             print("willimplementlater()", end='')
 
