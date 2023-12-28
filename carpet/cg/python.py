@@ -198,6 +198,11 @@ class CarpetPython:
             print(v.litvalue.capitalize(), end='')
         elif v.littype == TokenChar:
             print('"{0}"'.format(v.litvalue), end='')
+        elif v.littype == TokenString:
+            if '\n' in v.litvalue or '\r' in v.litvalue:
+                print(v.litvalue.replace('\n', '\\n').replace('\r', '\\r'), end='')
+            else:
+                print(v.litvalue, end='')
         else:
             print(v.litvalue, end='')
 

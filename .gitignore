@@ -8,3 +8,5 @@ __pycache__/*
 *.cm*
 *.bak
 *.db
+*-dump.py
+*-dump.coast
