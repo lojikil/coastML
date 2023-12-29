@@ -10,6 +10,7 @@ array-init is function[A int array[A]];
 array-make-matrix is function[A int int array[array[A]]];
 array-append is function[array[A] array[A] array[A]];
 array-append! is function[array[A] array[A] unit];
+array-compare is function[array[A] array[A] int];
 array-concat is function[array[array[A]] array[A]];
 array-concat!
 array-sub
@@ -37,6 +38,7 @@ string-init
 string-split
 string-append
 string-join
+string-compare
 string-contains
 string-concat
 string-copy
@@ -57,3 +59,27 @@ char-escaped
 char-lowercase
 char-uppercase
 char-compare
+# File should have a `TextFile` and a `BinaryFile`
+# constructor
+# XXX should all of these return Result types?
+# that would allow us to avoid Exceptions like
+# what OCaml uses...
+# XXX also, should we have low-level interfaces
+# that just interact with e.g. POSIX and then
+# the higher level interfaces that do the right
+# thing?
+open-in is [string File]
+open-in-binary is [string File]
+open-out is [string File]
+open-out-binary is [string File]
+with-open-file is [string function[File A]]
+read-binary is [File array[int]]
+read-line is [File string]
+read-lines is [File array[string]]
+read-file is [string string]
+write-binary is [array[int] Result[int int]]
+write-line is [File string Result[int int]]
+write-lines
+write-file
+close-in
+close-out
