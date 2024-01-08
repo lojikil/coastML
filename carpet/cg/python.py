@@ -68,7 +68,9 @@ class CarpetPython:
                     "string-sort", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
                     "char-compare", "foreign-object-type", "foreign-call",
-                    "foreign-module-call", "foreign-class-call", "foreign-accessor"]
+                    "foreign-module-call", "foreign-class-call", "foreign-accessor",
+                    "open-in", "open-out", "open-binary-in", "open-binary-out",
+                    "read-lines", "read", "close-in", "channel-close"]
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
@@ -670,6 +672,39 @@ class CarpetPython:
         elif basisname == "foreign-accessor":
             self.generate_dispatch(call.data[1], depth=0)
             print(".{0}".format(call.data[0].litvalue[1:-1]), end='')
+        elif basisname == "open-in":
+            print("open(", end='')
+            self.generate_dispatch(call.data[0], 0)
+            print(")", end='')
+        elif basisname == "open-out":
+            print("open(", end='')
+            self.generate_dispatch(call.data[0], 0)
+            print(", 'w')", end='')
+        elif basisname == "open-binary-in":
+            print("open(", end='')
+            self.generate_dispatch(call.data[0], 0)
+            print(", 'rb')", end='')
+        elif basisname == "open-binary-out":
+            print("open(", end='')
+            self.generate_dispatch(call.data[0], 0)
+            print(", 'wb')", end='')
+        elif basisname == "open-append":
+            print("open(", end='')
+            self.generate_dispatch(call.data[0], 0)
+            print(", 'a')", end='')
+        elif basisname == "readlines":
+            self.generate_dispatch(call.data[0], 0)
+            print(".readlines()", end='')
+        elif basisname == "read":
+            self.generate_dispatch(call.data[0], 0)
+            print(".read()", end='')
+        elif basisname == "readline":
+            self.generate_dispatch(call.data[0], 0)
+            print(".readline()", end='')
+        elif basisname == "close-in" or basisname == "channel-close" or \
+             basisname == "close-out":
+            self.generate_dispatch(call.data[0], 0)
+            print(".close()", end='')
         else:
             print("willimplementlater()", end='')
 
