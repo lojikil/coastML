@@ -9,4 +9,6 @@ __pycache__/*
 *.bak
 *.db
 *-dump.py
+*_dump.py
 *-dump.coast
+*_dump.coast
