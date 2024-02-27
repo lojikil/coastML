@@ -69,7 +69,8 @@ There are only a handful of forms in coastML:
 * `fc`: a case-lambda
 * `type`: for introducing records & ADTs
 * `case`: a combination of `cond` and `case` or `match`
-* `mod`: modules (still on the fence about making first class modules & functors)
+* `mod`: modules
+* type classes in the form of `sig` and `impl`
 * assignments, operators, and function calls
 ** one note about operators: like Project Verona and carML, coastML has no operator precedence, but does support inline operators
 ** This means that you cannot have two operators in a form that are of different precedence without parentheses
