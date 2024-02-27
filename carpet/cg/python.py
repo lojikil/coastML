@@ -52,8 +52,8 @@ class CarpetPython:
     def is_basis_fn(self, fn):
         # is this one of the basis functions we know
         # how to optimize away?
-        basislib = ["array-length", "array-get", "array-set!", "array-make",
-                    "array-init", "array-make-matrix", "array-append",
+        basislib = ["array-length", "array-get", "array-set!", "array-make", "array-get-right",
+                    "array-init", "array-make-matrix", "array-append", "array-set-right!",
                     "array-append!", "array-concat", "array-concat!",
                     "array-sub", "array-copy", "array-fill!", "array-blit!",
                     "array->list", "list->array", "array-iter", "array-iter-while",
@@ -403,6 +403,10 @@ class CarpetPython:
     def generate_basis(self, call:CoastFNCallAST, depth=0):
         # many of these will require some minimal amount of custom
         # code to support...
+        # FIXME: we probably can iterate over the values of
+        # `call.data` and call `generate_dispatch` on each already,
+        # so that each item works as expected. We can check for things
+        # that appear to have side effects as well...
         basisname = call.fn.identvalue
         if basisname == "array-length" or basisname == "string-length":
             print("len(", end='')
@@ -412,6 +416,30 @@ class CarpetPython:
             self.generate_dispatch(call.data[0], depth=0)
             print("[", end='')
             self.generate_dispatch(call.data[1], depth=0)
+            print("]", end='')
+        elif basisname == "array-get-right":
+            self.generate_dispatch(call.data[0], depth=0)
+            print("[", end='')
+            idx = call.data[1]
+            # specialize integers here
+            if type(idx) is CoastLiteralAST and \
+               (idx.littype is TokenHex or \
+                idx.littype is TokenBin or \
+                idx.littype is TokenOct or \
+                idx.littype is TokenInt):
+                # ok, here we want to convert it to an int, add one, then negate
+                int_idx = 0
+                if idx.littype is TokenHex:
+                    int_idx = -(int(idx.litvalue, base=16) + 1)
+                elif idx.littype is TokenBin:
+                    int_idx = -(int(idx.litvalue, base=2) + 1)
+                elif idx.littype is TokenOct:
+                    int_idx = -(int(idx.litvalue, base=8) + 1)
+                elif idx.littype is TokenInt:
+                    int_idx = -(int(idx.litvalue) + 1)
+                print(int_idx, end='')
+            else:
+                self.generate_dispatch(call.data[1], depth=0)
             print("]", end='')
         elif basisname == "array-set!":
             self.generate_dispatch(call.data[0], depth=0)
