@@ -635,7 +635,9 @@ class CarpetPython:
         elif basisname == "array-blit!":
             pass
         elif basisname == "array-concat!":
-            pass
+            self.generate_dispatch(call.data[0], depth=0)
+            print(" += ")
+            self.generate_dispatch(call.data[1], depth=0)
         elif basisname == "array-concat":
             print('functools.reduce(lambda x, y: x + y,', end='')
             self.generate_dispatch(call.data[0], depth=0)
@@ -685,6 +687,14 @@ class CarpetPython:
             # now *this* get's a little more interesting...
             # we could map over zip here...
             pass
+        elif basisname == "string-concat":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(" + ", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+        elif basisname == "string-concat!":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(" += ", end='')
+            self.generate_dispatch(call.data[1], depth=0)
         elif basisname == "foreign-object-type":
             print("type(", end='')
             self.generate_dispatch(call.data[0], depth=0)
