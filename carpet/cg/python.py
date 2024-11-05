@@ -695,6 +695,11 @@ class CarpetPython:
             self.generate_dispatch(call.data[0], depth=0)
             print(" += ", end='')
             self.generate_dispatch(call.data[1], depth=0)
+        elif basisname == "string-join":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(".join(", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(")", end='')
         elif basisname == "foreign-object-type":
             print("type(", end='')
             self.generate_dispatch(call.data[0], depth=0)
