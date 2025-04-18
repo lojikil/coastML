@@ -442,7 +442,7 @@ class Lex:
         self.src = src
         self.offset = offset
         self.line = line
-        self.rest_ident = re.compile("[a-zA-Z0-9_+=!@$%^&*|?:\.<>/-]")
+        self.rest_ident = re.compile(r"[a-zA-Z0-9_+=!@$%^&*|?:\.<>/-]")
         # we have two options here:
         #
         # * make tag/ident strict
@@ -454,7 +454,7 @@ class Lex:
         # actual string for the former
         self.tag = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*")
         self.ident = re.compile("[a-z_!@$%^&*<>][a-zA-Z0-9_+=!@$%^&*|?<>/-]*")
-        self.ns_adt = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
+        self.ns_adt = re.compile(r"[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(\.[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
         self.ns_mod = re.compile("[A-Z][a-zA-Z0-9_+=!@$%^&*|?<>/-]*(::[a-zA-Z0-9_+=!@$%^&*|?<>/-])+")
         self.operators = re.compile("^([+=!@$%^&*|?<>/-])+$")
         self.keywords = re.compile("^(case|esac|fn|type|epyt|mod|is|box|sig|impl|newtype)$")
