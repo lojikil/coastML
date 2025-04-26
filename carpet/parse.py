@@ -176,6 +176,17 @@ class TokenSemiColon(Token):
     def __str__(self):
         return ";"
 
+class TokenEnd(Token):
+    def __init__(self, l, o):
+        self.line = l
+        self.offset = o
+
+    def __repr__(self):
+        return "TokenEnd()"
+
+    def __str__(self):
+        return ";;"
+
 # TokenSet 2
 
 class TokenSet(Token):
@@ -544,6 +555,12 @@ class Lex:
             return TokenComma(self.line, self.offset)
         elif self.src[o] == ';':
             self.offset = o + 1
+            no = o + 1
+            if no >= len(src):
+                return TokenSemiColon(self.line, self.offset)
+            elif src[no] == ';':
+                self.offset = o + 1
+                return TokenEnd(self.line, self.offset)
             return TokenSemiColon(self.line, self.offset)
         elif self.src[o] == ':':
             no = o + 1
