@@ -556,10 +556,10 @@ class Lex:
         elif self.src[o] == ';':
             self.offset = o + 1
             no = o + 1
-            if no >= len(src):
+            if no >= len(self.src):
                 return TokenSemiColon(self.line, self.offset)
-            elif src[no] == ';':
-                self.offset = o + 1
+            elif self.src[no] == ';':
+                self.offset = no + 1
                 return TokenEnd(self.line, self.offset)
             return TokenSemiColon(self.line, self.offset)
         elif self.src[o] == ':':
