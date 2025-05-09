@@ -65,7 +65,7 @@ class CarpetPython:
                     "string-concat", "string-copy", "string->array",
                     "string-iter", "string-map", "string-iter-index", "string-iter-while",
                     "string-map-index", "string-foldl", "string-foldr", "string-iter-until",
-                    "string-sort", "compare", "char-code", "char-chr",
+                    "string-sort", "string-replace", "compare", "char-code", "char-chr",
                     "char-escaped", "char-lowercase", "char-uppercase",
                     "char-compare", "foreign-object-type", "foreign-call",
                     "foreign-module-call", "foreign-class-call", "foreign-accessor",
@@ -699,6 +699,13 @@ class CarpetPython:
             self.generate_dispatch(call.data[0], depth=0)
             print(".join(", end='')
             self.generate_dispatch(call.data[1], depth=0)
+            print(")", end='')
+        elif basisname == "string-replace":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(".replace(", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(", ", end='')
+            self.generate_dispatch(call.data[2], depth=0)
             print(")", end='')
         elif basisname == "foreign-object-type":
             print("type(", end='')
