@@ -1192,6 +1192,7 @@ class CarpetPython:
         # XXX really need to be more selective about these...
         print("from dataclasses import dataclass\nimport functools")
         print("import itertools\nfrom typing import Any, Callable")
+        print("import random\nimport sys\n")
 
         for ast in self.asts:
             self.generate_dispatch(ast, depth, tail=True)
