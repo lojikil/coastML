@@ -70,7 +70,8 @@ class CarpetPython:
                     "char-compare", "foreign-object-type", "foreign-call",
                     "foreign-module-call", "foreign-class-call", "foreign-accessor",
                     "open-in", "open-out", "open-binary-in", "open-binary-out",
-                    "read-lines", "read", "close-in", "channel-close"]
+                    "read-lines", "read", "close-in", "channel-close", "int->string",
+                    "random-integer"]
         return fn.identvalue in basislib
 
     def is_accessor(self, fn):
@@ -755,6 +756,16 @@ class CarpetPython:
              basisname == "close-out":
             self.generate_dispatch(call.data[0], 0)
             print(".close()", end='')
+        elif basisname == "int->string":
+            print("str(", end='')
+            self.generate_dispatch(call.data[0], 0)
+            print(")", end='')
+        elif basisname == "random-integer":
+            print("random.randint(", end="")
+            self.generate_dispatch(call.data[0], 0)
+            print(", ", end="")
+            self.generate_dispatch(call.data[1], 0)
+            print(")", end="")
         else:
             print("willimplementlater()", end='')
 
