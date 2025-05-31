@@ -61,8 +61,8 @@ class CarpetPython:
                     "array-foldl", "array-foldr", "array-sort", "array-sort!",
                     "array-stable-sort", "array-fast-sort", "string-length",
                     "string-get", "string-make", "string-init", "string-split",
-                    "string-append", "string-join", "string-contains",
-                    "string-concat", "string-copy", "string->array",
+                    "string-append", "string-join", "string-contains", "string-starts-with",
+                    "string-concat", "string-copy", "string->array", "string-ends-with",
                     "string-iter", "string-map", "string-iter-index", "string-iter-while",
                     "string-map-index", "string-foldl", "string-foldr", "string-iter-until",
                     "string-sort", "string-replace", "compare", "char-code", "char-chr",
@@ -707,6 +707,16 @@ class CarpetPython:
             self.generate_dispatch(call.data[1], depth=0)
             print(", ", end='')
             self.generate_dispatch(call.data[2], depth=0)
+            print(")", end='')
+        elif basisname == "string-begins-with":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(".startswith(", end='')
+            self.generate_dispatch(call.data[1], depth=0)
+            print(")", end='')
+        elif basisname == "string-ends-with":
+            self.generate_dispatch(call.data[0], depth=0)
+            print(".endswith(", end='')
+            self.generate_dispatch(call.data[1], depth=0)
             print(")", end='')
         elif basisname == "foreign-object-type":
             print("type(", end='')
